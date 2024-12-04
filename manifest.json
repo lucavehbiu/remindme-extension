@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Remind Me - Smart Web Reminders",
+  "version": "1.0",
+  "description": "Create smart, context-aware reminders from any webpage content",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus",
+    "alarms",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://*.vercel.app/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/hello_extensions.png",
+      "48": "icons/hello_extensions.png",
+      "128": "icons/hello_extensions.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["contentScript.js"]
+  }],
+  "icons": {
+    "16": "icons/hello_extensions.png",
+    "48": "icons/hello_extensions.png",
+    "128": "icons/hello_extensions.png"
+  }
+}
