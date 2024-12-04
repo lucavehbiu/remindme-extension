@@ -7,6 +7,11 @@ chrome.runtime.onInstalled.addListener(() => {
     contexts: ['selection', 'image']
   });
 
+  // Request notification permission
+  chrome.notifications.getPermissionLevel((level) => {
+    console.log('Notification permission level:', level);
+  });
+
   console.log('Extension installed, context menu created');
 });
 
@@ -53,20 +58,51 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     console.log('Processing reminder data:', reminderData);
 
+    // Play notification sound
+    const audio = new Audio(chrome.runtime.getURL('notification.mp3'));
+    audio.play().catch(e => console.log('Could not play notification sound:', e));
+
     // Show notification
-    chrome.notifications.create(`reminder_${Date.now()}`, {
+    const notificationId = `reminder_${Date.now()}`;
+    const notificationOptions = {
       type: 'basic',
       iconUrl: 'icons/icon.webp',
-      title: 'Reminder',
+      title: 'Web Reminder',
       message: reminderData.type === 'image' ?
         'Click to view your saved image' :
         `"${reminderData.content.substring(0, 100)}${reminderData.content.length > 100 ? '...' : ''}"`,
       priority: 2,
+      requireInteraction: true, // Keep notification visible until user interacts
       buttons: [
-        { title: 'View Content' },
-        { title: 'Dismiss' }
-      ]
-    });
+        { title: '👁 View Content' },
+        { title: '❌ Dismiss' }
+      ],
+      silent: false // Enable system notification sound
+    };
+
+    // Create notification with retry
+    const createNotificationWithRetry = async (retries = 3) => {
+      try {
+        await new Promise((resolve, reject) => {
+          chrome.notifications.create(notificationId, notificationOptions, (notificationId) => {
+            if (chrome.runtime.lastError) {
+              reject(chrome.runtime.lastError);
+            } else {
+              resolve(notificationId);
+            }
+          });
+        });
+        console.log('Notification created successfully');
+      } catch (error) {
+        console.error('Error creating notification:', error);
+        if (retries > 0) {
+          console.log(`Retrying... (${retries} attempts left)`);
+          setTimeout(() => createNotificationWithRetry(retries - 1), 1000);
+        }
+      }
+    };
+
+    await createNotificationWithRetry();
 
     // Send email using Resend (if configured)
     if (reminderData.email) {
@@ -120,6 +156,22 @@ chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) =
   }
   // Close the notification
   chrome.notifications.clear(notificationId);
+});
+
+// Handle notification clicks
+chrome.notifications.onClicked.addListener((notificationId) => {
+  console.log('Notification clicked:', notificationId);
+  if (notificationId.startsWith('reminder_')) {
+    chrome.storage.local.get(['reminderHistory'], (result) => {
+      const reminderId = notificationId.split('_')[1];
+      const reminder = result.reminderHistory.find(r => r.timestamp.toString() === reminderId);
+
+      if (reminder) {
+        chrome.tabs.create({ url: reminder.pageUrl });
+      }
+    });
+    chrome.notifications.clear(notificationId);
+  }
 });
 
 // Listen for messages from content script
