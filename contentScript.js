@@ -1,22 +1,36 @@
-// Listen for messages from the popup
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "getSelectedText") {
+// Handle text selection and image right-clicks
+let lastRightClickedElement = null;
+
+document.addEventListener('mousedown', (event) => {
+  if (event.button === 2) { // Right click
+    lastRightClickedElement = event.target;
     const selectedText = window.getSelection().toString().trim();
-    sendResponse({ selectedText });
-  }
-  return true;
-});
+    const isImage = event.target.tagName === 'IMG';
 
-// Add context menu
-chrome.runtime.sendMessage({ action: 'createContextMenu' });
-
-// Handle context menu clicks
-document.addEventListener('contextmenu', (event) => {
-  const selectedText = window.getSelection().toString().trim();
-  if (selectedText) {
     chrome.runtime.sendMessage({
       action: 'updateContextMenu',
-      selectedText
+      data: {
+        type: isImage ? 'image' : 'text',
+        content: isImage ? event.target.src : selectedText,
+        pageUrl: window.location.href,
+        pageTitle: document.title
+      }
     });
   }
+});
+
+// Listen for messages from the popup/background
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "getSelectedContent") {
+    const selectedText = window.getSelection().toString().trim();
+    const response = {
+      type: lastRightClickedElement?.tagName === 'IMG' ? 'image' : 'text',
+      content: lastRightClickedElement?.tagName === 'IMG' ?
+        lastRightClickedElement.src : selectedText,
+      pageUrl: window.location.href,
+      pageTitle: document.title
+    };
+    sendResponse(response);
+  }
+  return true;
 });

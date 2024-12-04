@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Remind Me - Smart Web Reminders",
   "version": "1.0",
-  "description": "Create smart, context-aware reminders from any webpage content",
+  "description": "Set reminders for any web content with just a right-click",
   "permissions": [
     "storage",
     "activeTab",
@@ -11,14 +11,17 @@
     "notifications"
   ],
   "host_permissions": [
-    "https://*.vercel.app/*"
+    "https://api.resend.com/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-      "16": "icons/hello_extensions.png",
-      "48": "icons/hello_extensions.png",
-      "128": "icons/hello_extensions.png"
+      "16": "icons/icon.webp",
+      "48": "icons/icon.webp",
+      "128": "icons/icon.webp"
     }
   },
   "background": {
@@ -29,8 +32,8 @@
     "js": ["contentScript.js"]
   }],
   "icons": {
-    "16": "icons/hello_extensions.png",
-    "48": "icons/hello_extensions.png",
-    "128": "icons/hello_extensions.png"
+    "16": "icons/icon.webp",
+    "48": "icons/icon.webp",
+    "128": "icons/icon.webp"
   }
 }
