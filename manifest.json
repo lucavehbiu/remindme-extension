@@ -7,14 +7,13 @@
     "storage",
     "activeTab",
     "contextMenus",
-    "alarms",
-    "notifications"
+    "alarms"
   ],
   "host_permissions": [
     "https://api.resend.com/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
   },
   "action": {
     "default_popup": "popup.html",

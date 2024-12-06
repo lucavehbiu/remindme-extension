@@ -6,11 +6,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="output.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="flatpickr.min.css">
+  <link rel="stylesheet" type="text/css" href="material_blue.css">
   <style>
     body {
       width: 380px;
       min-height: 480px;
       font-family: 'Inter', sans-serif;
+    }
+    /* Custom Flatpickr Styles */
+    .flatpickr-calendar {
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      font-family: 'Inter', sans-serif;
+    }
+    .flatpickr-day.selected {
+      background: linear-gradient(to right, #2563eb, #4f46e5);
+      border-color: transparent;
+    }
+    .flatpickr-day.selected:hover {
+      background: linear-gradient(to right, #1d4ed8, #4338ca);
+      border-color: transparent;
+    }
+    .flatpickr-time input:hover,
+    .flatpickr-time .flatpickr-am-pm:hover,
+    .flatpickr-time input:focus,
+    .flatpickr-time .flatpickr-am-pm:focus {
+      background: #f3f4f6;
+    }
+    .flatpickr-day.today {
+      border-color: #2563eb;
+    }
+    .flatpickr-day.today:hover {
+      background: #f3f4f6;
+      color: #2563eb;
     }
   </style>
 </head>
@@ -71,17 +100,46 @@
 
       <!-- Custom Date/Time -->
       <div class="space-y-3">
-        <label class="block text-sm font-medium text-gray-700">Custom Date & Time</label>
-        <div class="flex gap-2">
-          <input type="datetime-local" id="custom-time"
-            class="flex-1 px-4 py-2.5 bg-white border border-gray-200 rounded-lg shadow-sm
+        <div class="flex items-center justify-between">
+          <label class="block text-sm font-medium text-gray-700">Choose When</label>
+          <button id="set-to-now"
+            class="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Set to Now
+          </button>
+        </div>
+        <div class="relative">
+          <input type="text" id="custom-time"
+            placeholder="Select date and time..."
+            class="block w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg shadow-sm
             focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
             text-sm text-gray-900 transition-all duration-200">
-          <button id="set-to-now"
-            class="px-4 py-2.5 bg-gradient-to-br from-gray-50 to-gray-100 hover:from-gray-100 hover:to-gray-200
-            text-gray-700 rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-md
-            border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-            Set to Now
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-2">
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-blue-700 bg-blue-50
+            rounded-lg hover:bg-blue-100 transition-colors duration-200" data-minutes="30">
+            30m
+          </button>
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-indigo-700 bg-indigo-50
+            rounded-lg hover:bg-indigo-100 transition-colors duration-200" data-minutes="60">
+            1h
+          </button>
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-purple-700 bg-purple-50
+            rounded-lg hover:bg-purple-100 transition-colors duration-200" data-minutes="1440">
+            Tomorrow
+          </button>
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-violet-700 bg-violet-50
+            rounded-lg hover:bg-violet-100 transition-colors duration-200" data-minutes="10080">
+            Next Week
           </button>
         </div>
       </div>
@@ -147,6 +205,7 @@
     </div>
   </div>
 
+  <script src="flatpickr.min.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

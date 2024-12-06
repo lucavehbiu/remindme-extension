@@ -7,6 +7,35 @@ document.addEventListener('DOMContentLoaded', async () => {
   const setToNowButton = document.getElementById('set-to-now');
   const emailInput = document.getElementById('email');
 
+  // Initialize Flatpickr
+  const fp = flatpickr(customTime, {
+    enableTime: true,
+    dateFormat: "Y-m-d H:i",
+    minDate: "today",
+    defaultHour: new Date().getHours(),
+    defaultMinute: new Date().getMinutes() + 1,
+    animate: true,
+    time_24hr: false,
+    position: "auto",
+    monthSelectorType: "static",
+    showMonths: 1,
+    onChange: function(selectedDates, dateStr) {
+      // Add subtle highlight effect when date changes
+      customTime.classList.add('ring-2', 'ring-blue-500/20');
+      setTimeout(() => {
+        customTime.classList.remove('ring-2', 'ring-blue-500/20');
+      }, 1000);
+    }
+  });
+
+  // Function to set datetime picker to a specific time
+  const setCustomTime = (minutes) => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() + minutes);
+    fp.setDate(date);
+    return date;
+  };
+
   // Load last used email
   const { lastUsedEmail, savedEmails = [] } = await chrome.storage.local.get(['lastUsedEmail', 'savedEmails']);
   if (lastUsedEmail) {
@@ -40,24 +69,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Function to format date for datetime-local input
-  const formatDateForInput = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
-  // Function to set the datetime input to current time
-  const setToNow = () => {
-    const now = new Date();
-    // Add 1 minute to give user time to set the reminder
-    now.setMinutes(now.getMinutes() + 1);
-    customTime.value = formatDateForInput(now);
-  };
-
   // Check if we're setting a new reminder or viewing the list
   const { pendingReminder } = await chrome.storage.local.get('pendingReminder');
 
@@ -79,47 +90,38 @@ document.addEventListener('DOMContentLoaded', async () => {
       previewImage.classList.add('hidden');
     }
 
-    // Set minimum datetime-local to now
-    const now = new Date();
-    customTime.min = formatDateForInput(now);
-    setToNow();
+    // Set to now by default
+    setCustomTime(1); // 1 minute from now
 
     // Handle Set to Now button
-    setToNowButton.addEventListener('click', setToNow);
+    setToNowButton.addEventListener('click', () => {
+      setCustomTime(1);
+    });
 
     // Handle quick reminder buttons
     document.querySelectorAll('.quick-reminder').forEach(button => {
       button.addEventListener('click', () => {
         const minutes = parseInt(button.dataset.minutes);
-        const futureDate = new Date();
-        futureDate.setMinutes(futureDate.getMinutes() + minutes);
-
-        // Update the custom time field with local timezone
-        customTime.value = formatDateForInput(futureDate);
-
-        // Scroll the custom time field into view
-        customTime.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-        // Add a subtle highlight effect
-        customTime.classList.add('ring-2', 'ring-blue-500/20');
-        setTimeout(() => {
-          customTime.classList.remove('ring-2', 'ring-blue-500/20');
-        }, 1000);
+        setCustomTime(minutes);
       });
     });
 
     // Handle custom time reminder
     document.getElementById('set-reminder').addEventListener('click', () => {
-      const selectedTime = new Date(customTime.value);
-      const now = new Date();
+      const selectedDate = fp.selectedDates[0];
+      if (!selectedDate) {
+        alert('Please select a date and time');
+        return;
+      }
 
-      if (selectedTime <= now) {
+      const now = new Date();
+      if (selectedDate <= now) {
         alert('Please select a future time for the reminder');
         return;
       }
 
       // Validate email field
-      const email = document.getElementById('email').value.trim();
+      const email = emailInput.value.trim();
       if (!email) {
         alert('Please enter an email address to receive the reminder');
         return;
@@ -129,8 +131,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      console.log('Setting reminder for:', selectedTime.toLocaleString());
-      createReminder(selectedTime);
+      console.log('Setting reminder for:', selectedDate.toLocaleString());
+      createReminder(selectedDate);
     });
   } else {
     // Show reminders list view
