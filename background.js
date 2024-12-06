@@ -104,6 +104,14 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
                         ''}
                     </p>`
                   }
+                  ${reminderData.description ? `
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0;">
+                      <p style="color: #4a5568; font-size: 14px; margin: 0;">
+                        <strong>Your note:</strong><br>
+                        ${reminderData.description}
+                      </p>
+                    </div>
+                  ` : ''}
                 </div>
                 <p style="margin-top: 20px;">
                   <a href="${reminderData.pageUrl}"

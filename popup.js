@@ -120,6 +120,7 @@ async function createReminder(reminderTime) {
   console.log('Creating reminder for:', reminderTime.toLocaleString());
   const { pendingReminder } = await chrome.storage.local.get('pendingReminder');
   const email = document.getElementById('email').value.trim();
+  const description = document.getElementById('reminder-description').value.trim();
 
   if (!pendingReminder) {
     alert('No content selected for reminder');
@@ -131,6 +132,7 @@ async function createReminder(reminderTime) {
     type: pendingReminder.type,
     content: pendingReminder.content,
     pageUrl: pendingReminder.pageUrl,
+    description: description || null, // Include description if provided
     timestamp: Date.now(),
     email: email || null,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -179,6 +181,7 @@ async function createReminder(reminderTime) {
           timeZoneName: 'short'
         })}</p>
         <p class="text-gray-500 text-sm">at ${email}</p>
+        ${description ? `<p class="text-gray-600 text-sm mt-2">Note: ${description}</p>` : ''}
       </div>
     `;
 
