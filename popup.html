@@ -50,9 +50,14 @@
       <!-- Header -->
       <div class="flex items-center justify-between">
         <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-          Set Reminder
+          New Reminder
         </h1>
-        <div class="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 shadow-lg"></div>
+        <button id="cancel-reminder" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Cancel
+        </button>
       </div>
 
       <!-- Content Preview -->
@@ -166,7 +171,15 @@
       <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
         Your Reminders
       </h1>
-      <button id="clear-all" class="text-sm text-gray-500 hover:text-gray-700">Clear All</button>
+      <div class="flex items-center gap-3">
+        <span id="reminder-count" class="text-sm text-gray-500"></span>
+        <button id="clear-all" class="text-sm text-gray-500 hover:text-gray-700 flex items-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Clear All
+        </button>
+      </div>
     </div>
 
     <!-- Reminders List -->

@@ -6,6 +6,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const customTime = document.getElementById('custom-time');
   const setToNowButton = document.getElementById('set-to-now');
   const emailInput = document.getElementById('email');
+  const cancelButton = document.getElementById('cancel-reminder');
+  const reminderCount = document.getElementById('reminder-count');
+
+  // Function to clear pending reminder and show list view
+  const cancelReminder = async () => {
+    await chrome.storage.local.remove('pendingReminder');
+    newReminderView.classList.add('hidden');
+    remindersListView.classList.remove('hidden');
+    loadReminders(); // Refresh the list
+  };
+
+  // Handle cancel button click
+  cancelButton.addEventListener('click', cancelReminder);
 
   // Initialize Flatpickr
   const fp = flatpickr(customTime, {
@@ -16,25 +29,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     defaultMinute: new Date().getMinutes() + 1,
     animate: true,
     time_24hr: false,
-    position: "auto",
+    position: "right",
+    static: true,
     monthSelectorType: "static",
     showMonths: 1,
-    onChange: function(selectedDates, dateStr) {
-      // Add subtle highlight effect when date changes
-      customTime.classList.add('ring-2', 'ring-blue-500/20');
-      setTimeout(() => {
-        customTime.classList.remove('ring-2', 'ring-blue-500/20');
-      }, 1000);
+    disableMobile: true,
+    confirmDate: {
+      enable: true,
+      showAlways: true
+    },
+    onClose: function(selectedDates, dateStr) {
+      if (selectedDates.length > 0) {
+        const selected = selectedDates[0];
+        const now = new Date();
+        if (selected.getHours() === now.getHours() &&
+            selected.getMinutes() === now.getMinutes()) {
+          selected.setHours(now.getHours() + 1);
+          selected.setMinutes(0);
+          fp.setDate(selected);
+        }
+      }
     }
   });
-
-  // Function to set datetime picker to a specific time
-  const setCustomTime = (minutes) => {
-    const date = new Date();
-    date.setMinutes(date.getMinutes() + minutes);
-    fp.setDate(date);
-    return date;
-  };
 
   // Load last used email
   const { lastUsedEmail, savedEmails = [] } = await chrome.storage.local.get(['lastUsedEmail', 'savedEmails']);
@@ -59,11 +75,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (email && email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       await chrome.storage.local.set({ lastUsedEmail: email });
 
-      // Add to saved emails if not already present
       if (!savedEmails.includes(email)) {
         savedEmails.push(email);
         await chrome.storage.local.set({
-          savedEmails: savedEmails.slice(-5) // Keep last 5 emails
+          savedEmails: savedEmails.slice(-5)
         });
       }
     }
@@ -91,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Set to now by default
-    setCustomTime(1); // 1 minute from now
+    setCustomTime(1);
 
     // Handle Set to Now button
     setToNowButton.addEventListener('click', () => {
@@ -236,14 +251,18 @@ async function loadReminders() {
   const { reminderHistory = [] } = await chrome.storage.local.get('reminderHistory');
   const remindersList = document.getElementById('reminders-list');
   const emptyState = document.getElementById('empty-state');
+  const reminderCount = document.getElementById('reminder-count');
 
   if (reminderHistory.length === 0) {
     remindersList.innerHTML = '';
     emptyState.classList.remove('hidden');
+    reminderCount.textContent = '';
     return;
   }
 
   emptyState.classList.add('hidden');
+  reminderCount.textContent = `${reminderHistory.length} reminder${reminderHistory.length === 1 ? '' : 's'}`;
+
   remindersList.innerHTML = reminderHistory
     .sort((a, b) => b.scheduledFor - a.scheduledFor)
     .map(reminder => `

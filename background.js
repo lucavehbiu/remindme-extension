@@ -34,21 +34,25 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 
   console.log('Creating reminder with:', { type, content, url });
 
-  chrome.storage.local.set({
-    pendingReminder: {
-      type: type,
-      content: content,
-      pageUrl: url,
-      timestamp: Date.now()
-    }
-  });
+  // Clear any existing pending reminder first
+  chrome.storage.local.remove('pendingReminder', () => {
+    // Then set the new pending reminder
+    chrome.storage.local.set({
+      pendingReminder: {
+        type: type,
+        content: content,
+        pageUrl: url,
+        timestamp: Date.now()
+      }
+    });
 
-  // Open popup for time selection
-  chrome.windows.create({
-    url: 'popup.html',
-    type: 'popup',
-    width: 400,
-    height: 600
+    // Open popup for time selection
+    chrome.windows.create({
+      url: 'popup.html',
+      type: 'popup',
+      width: 400,
+      height: 600
+    });
   });
 });
 
