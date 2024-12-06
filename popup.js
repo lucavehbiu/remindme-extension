@@ -5,6 +5,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   const emptyState = document.getElementById('empty-state');
   const customTime = document.getElementById('custom-time');
   const setToNowButton = document.getElementById('set-to-now');
+  const emailInput = document.getElementById('email');
+
+  // Load last used email
+  const { lastUsedEmail, savedEmails = [] } = await chrome.storage.local.get(['lastUsedEmail', 'savedEmails']);
+  if (lastUsedEmail) {
+    emailInput.value = lastUsedEmail;
+  }
+
+  // Set up email autocomplete
+  emailInput.setAttribute('list', 'email-suggestions');
+  const datalist = document.createElement('datalist');
+  datalist.id = 'email-suggestions';
+  savedEmails.forEach(email => {
+    const option = document.createElement('option');
+    option.value = email;
+    datalist.appendChild(option);
+  });
+  emailInput.parentNode.appendChild(datalist);
+
+  // Save email when it changes
+  emailInput.addEventListener('change', async () => {
+    const email = emailInput.value.trim();
+    if (email && email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      await chrome.storage.local.set({ lastUsedEmail: email });
+
+      // Add to saved emails if not already present
+      if (!savedEmails.includes(email)) {
+        savedEmails.push(email);
+        await chrome.storage.local.set({
+          savedEmails: savedEmails.slice(-5) // Keep last 5 emails
+        });
+      }
+    }
+  });
 
   // Function to format date for datetime-local input
   const formatDateForInput = (date) => {
