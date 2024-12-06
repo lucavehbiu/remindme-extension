@@ -3,6 +3,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   const remindersListView = document.getElementById('reminders-list-view');
   const remindersList = document.getElementById('reminders-list');
   const emptyState = document.getElementById('empty-state');
+  const customTime = document.getElementById('custom-time');
+  const setToNowButton = document.getElementById('set-to-now');
+
+  // Function to format date for datetime-local input
+  const formatDateForInput = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Function to set the datetime input to current time
+  const setToNow = () => {
+    const now = new Date();
+    // Add 1 minute to give user time to set the reminder
+    now.setMinutes(now.getMinutes() + 1);
+    customTime.value = formatDateForInput(now);
+  };
 
   // Check if we're setting a new reminder or viewing the list
   const { pendingReminder } = await chrome.storage.local.get('pendingReminder');
@@ -27,28 +47,56 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Set minimum datetime-local to now
     const now = new Date();
-    // FOR TESTING: Set default to 10 seconds from now
-    now.setSeconds(now.getSeconds() + 10);
-    const customTime = document.getElementById('custom-time');
-    customTime.min = now.toISOString().slice(0, 16);
-    customTime.value = now.toISOString().slice(0, 16);
+    customTime.min = formatDateForInput(now);
+    setToNow();
+
+    // Handle Set to Now button
+    setToNowButton.addEventListener('click', setToNow);
 
     // Handle quick reminder buttons
     document.querySelectorAll('.quick-reminder').forEach(button => {
       button.addEventListener('click', () => {
-        // FOR TESTING: All quick reminders set to 10 seconds
-        const reminderTime = new Date(Date.now() + 10000);
-        console.log('Setting reminder for:', reminderTime.toLocaleString());
-        createReminder(reminderTime);
+        const minutes = parseInt(button.dataset.minutes);
+        const futureDate = new Date();
+        futureDate.setMinutes(futureDate.getMinutes() + minutes);
+
+        // Update the custom time field with local timezone
+        customTime.value = formatDateForInput(futureDate);
+
+        // Scroll the custom time field into view
+        customTime.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // Add a subtle highlight effect
+        customTime.classList.add('ring-2', 'ring-blue-500/20');
+        setTimeout(() => {
+          customTime.classList.remove('ring-2', 'ring-blue-500/20');
+        }, 1000);
       });
     });
 
     // Handle custom time reminder
     document.getElementById('set-reminder').addEventListener('click', () => {
-      // FOR TESTING: Set to 10 seconds from now
-      const reminderTime = new Date(Date.now() + 10000);
-      console.log('Setting reminder for:', reminderTime.toLocaleString());
-      createReminder(reminderTime);
+      const selectedTime = new Date(customTime.value);
+      const now = new Date();
+
+      if (selectedTime <= now) {
+        alert('Please select a future time for the reminder');
+        return;
+      }
+
+      // Validate email field
+      const email = document.getElementById('email').value.trim();
+      if (!email) {
+        alert('Please enter an email address to receive the reminder');
+        return;
+      }
+      if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+
+      console.log('Setting reminder for:', selectedTime.toLocaleString());
+      createReminder(selectedTime);
     });
   } else {
     // Show reminders list view
@@ -69,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function createReminder(reminderTime) {
-  console.log('Creating reminder for time:', reminderTime);
+  console.log('Creating reminder for:', reminderTime.toLocaleString());
   const { pendingReminder } = await chrome.storage.local.get('pendingReminder');
   const email = document.getElementById('email').value.trim();
 
@@ -84,7 +132,8 @@ async function createReminder(reminderTime) {
     content: pendingReminder.content,
     pageUrl: pendingReminder.pageUrl,
     timestamp: Date.now(),
-    email: email || null
+    email: email || null,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   };
 
   try {
@@ -109,20 +158,35 @@ async function createReminder(reminderTime) {
       reminderHistory: reminderHistory.slice(-100) // Keep last 100 reminders
     });
 
-    // Show success notification
-    chrome.notifications.create('reminder_set', {
-      type: 'basic',
-      iconUrl: 'icons/icon.webp',
-      title: 'Reminder Set',
-      message: `Reminder will trigger in 10 seconds (${reminderTime.toLocaleString()})`,
-      priority: 2
-    });
+    // Show success message by updating the UI
+    const container = document.querySelector('.max-w-md');
+    container.innerHTML = `
+      <div class="text-center py-8 space-y-4">
+        <div class="text-green-500 mb-4">
+          <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-800">Reminder Set!</h2>
+        <p class="text-gray-600">You'll receive an email reminder on:</p>
+        <p class="text-gray-800 font-medium">${reminderTime.toLocaleString(undefined, {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        })}</p>
+        <p class="text-gray-500 text-sm">at ${email}</p>
+      </div>
+    `;
 
     // Clear pending reminder
     await chrome.storage.local.remove('pendingReminder');
 
-    // Close popup after 2 seconds to show the success message
-    setTimeout(() => window.close(), 2000);
+    // Close popup after 3 seconds
+    setTimeout(() => window.close(), 3000);
   } catch (error) {
     console.error('Error creating reminder:', error);
     alert('Failed to set reminder. Please try again.');
