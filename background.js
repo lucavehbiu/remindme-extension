@@ -4,7 +4,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: 'remindMe',
     title: 'Remind me about this',
-    contexts: ['selection', 'image']
+    contexts: ['selection', 'image', 'link']
   });
 
   // Request notification permission
@@ -18,11 +18,32 @@ chrome.runtime.onInstalled.addListener(() => {
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   console.log('Context menu clicked:', info);
+
+  let content, type, url;
+
+  if (info.mediaType === 'image') {
+    type = 'image';
+    content = info.srcUrl;
+    url = info.pageUrl;
+  } else if (info.linkUrl) {
+    // This is a link click
+    type = 'link';
+    content = info.selectionText || info.linkText || new URL(info.linkUrl).pathname;
+    url = info.linkUrl; // Use the actual clicked link URL
+  } else {
+    // This is a text selection
+    type = 'text';
+    content = info.selectionText;
+    url = info.pageUrl;
+  }
+
+  console.log('Creating reminder with:', { type, content, url });
+
   chrome.storage.local.set({
     pendingReminder: {
-      type: info.mediaType === 'image' ? 'image' : 'text',
-      content: info.mediaType === 'image' ? info.srcUrl : info.selectionText,
-      pageUrl: info.pageUrl,
+      type: type,
+      content: content,
+      pageUrl: url, // Use our determined URL
       timestamp: Date.now()
     }
   });
@@ -58,10 +79,6 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     console.log('Processing reminder data:', reminderData);
 
-    // Play notification sound
-    const audio = new Audio(chrome.runtime.getURL('notification.mp3'));
-    audio.play().catch(e => console.log('Could not play notification sound:', e));
-
     // Show notification
     const notificationId = `reminder_${Date.now()}`;
     const notificationOptions = {
@@ -70,14 +87,16 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
       title: 'Web Reminder',
       message: reminderData.type === 'image' ?
         'Click to view your saved image' :
+        reminderData.type === 'link' ?
+        `${reminderData.content} (${new URL(reminderData.pageUrl).hostname})` :
         `"${reminderData.content.substring(0, 100)}${reminderData.content.length > 100 ? '...' : ''}"`,
       priority: 2,
-      requireInteraction: true, // Keep notification visible until user interacts
+      requireInteraction: true,
       buttons: [
-        { title: '👁 View Content' },
+        { title: reminderData.type === 'link' ? '🔗 Open Link' : '👁 View Content' },
         { title: '❌ Dismiss' }
       ],
-      silent: false // Enable system notification sound
+      silent: false
     };
 
     // Create notification with retry
@@ -111,24 +130,56 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
         const response = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-            'Content-Type': 'application/json'
+            'Authorization': 'Bearer re_Se7TVdSp_2fMCw9eRaKBsbmqQzUPohfXh',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           body: JSON.stringify({
-            from: 'reminders@yourdomain.com',
+            from: 'onboarding@resend.dev',
             to: reminderData.email,
-            subject: 'Your Web Reminder',
+            subject: 'Your Web Reminder is Here!',
             html: `
-              <h2>Here's your reminder</h2>
-              <p>From page: <a href="${reminderData.pageUrl}">${reminderData.pageUrl}</a></p>
-              ${reminderData.type === 'image' ?
-                `<img src="${reminderData.content}" style="max-width: 100%;" />` :
-                `<p>${reminderData.content}</p>`
-              }
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #1a202c; margin-bottom: 20px;">Here's your reminder!</h2>
+                <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                  ${reminderData.type === 'image' ?
+                    `<img src="${reminderData.content}" style="max-width: 100%; border-radius: 4px;" />` :
+                    `<p style="color: #1a202c; font-size: 16px; line-height: 1.6;">
+                      ${reminderData.content}
+                      ${reminderData.type === 'link' ?
+                        `<br><span style="color: #718096; font-size: 14px;">
+                          ${new URL(reminderData.pageUrl).hostname}
+                        </span>` :
+                        ''}
+                    </p>`
+                  }
+                </div>
+                <p style="margin-top: 20px;">
+                  <a href="${reminderData.pageUrl}"
+                     style="background: linear-gradient(to right, #2563eb, #4f46e5);
+                            color: white;
+                            text-decoration: none;
+                            padding: 10px 20px;
+                            border-radius: 6px;
+                            display: inline-block;">
+                    ${reminderData.type === 'link' ? '🔗 Open Link' : '👁 View Original Page'}
+                  </a>
+                </p>
+                <p style="color: #718096; font-size: 12px; margin-top: 30px;">
+                  Sent from your Remind Me Chrome Extension
+                </p>
+              </div>
             `
           })
         });
-        console.log('Email sent:', response.ok);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(`Email API responded with status: ${response.status}. Details: ${JSON.stringify(errorData)}`);
+        }
+
+        const result = await response.json();
+        console.log('Email sent successfully:', result);
       } catch (error) {
         console.error('Failed to send email:', error);
       }
