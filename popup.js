@@ -9,6 +9,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cancelButton = document.getElementById('cancel-reminder');
   const reminderCount = document.getElementById('reminder-count');
 
+  // Function to set custom time
+  function setCustomTime(minutes) {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() + minutes);
+    fp.setDate(date);
+  }
+
   // Function to clear pending reminder and show list view
   const cancelReminder = async () => {
     await chrome.storage.local.remove('pendingReminder');
