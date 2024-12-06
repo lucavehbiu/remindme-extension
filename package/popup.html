@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Set Reminder</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="output.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="flatpickr.min.css">
+  <link rel="stylesheet" type="text/css" href="material_blue.css">
+  <style>
+    body {
+      width: 380px;
+      min-height: 480px;
+      font-family: 'Inter', sans-serif;
+    }
+    /* Custom Flatpickr Styles */
+    .flatpickr-calendar {
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      font-family: 'Inter', sans-serif;
+    }
+    .flatpickr-day.selected {
+      background: linear-gradient(to right, #2563eb, #4f46e5);
+      border-color: transparent;
+    }
+    .flatpickr-day.selected:hover {
+      background: linear-gradient(to right, #1d4ed8, #4338ca);
+      border-color: transparent;
+    }
+    .flatpickr-time input:hover,
+    .flatpickr-time .flatpickr-am-pm:hover,
+    .flatpickr-time input:focus,
+    .flatpickr-time .flatpickr-am-pm:focus {
+      background: #f3f4f6;
+    }
+    .flatpickr-day.today {
+      border-color: #2563eb;
+    }
+    .flatpickr-day.today:hover {
+      background: #f3f4f6;
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+  <!-- New Reminder View -->
+  <div id="new-reminder-view" class="hidden">
+    <div class="max-w-md mx-auto space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+          New Reminder
+        </h1>
+        <button id="cancel-reminder" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          Cancel
+        </button>
+      </div>
+
+      <!-- Content Preview -->
+      <div id="content-preview" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 transition-all duration-200 hover:shadow-md">
+        <div id="preview-text" class="text-gray-600 text-sm leading-relaxed"></div>
+        <img id="preview-image" class="hidden max-w-full h-auto rounded-lg mt-3 border border-gray-100" />
+      </div>
+
+      <!-- Description Field -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="block text-sm font-medium text-gray-700">Add Description</label>
+          <span class="text-xs text-gray-500">(Optional)</span>
+        </div>
+        <textarea id="reminder-description"
+          placeholder="Add any additional notes or context..."
+          class="block w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg shadow-sm
+          focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
+          text-sm text-gray-900 transition-all duration-200 resize-none"
+          rows="2"></textarea>
+      </div>
+
+      <!-- Custom Date/Time -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="block text-sm font-medium text-gray-700">Choose When</label>
+          <button id="set-to-now"
+            class="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Set to Now
+          </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-4 gap-2">
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50
+            rounded-lg hover:bg-blue-100 transition-colors duration-200" data-minutes="30">
+            30m
+          </button>
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-indigo-600 bg-indigo-50
+            rounded-lg hover:bg-indigo-100 transition-colors duration-200" data-minutes="60">
+            1h
+          </button>
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-purple-600 bg-purple-50
+            rounded-lg hover:bg-purple-100 transition-colors duration-200" data-minutes="1440">
+            Tomorrow
+          </button>
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-violet-600 bg-violet-50
+            rounded-lg hover:bg-violet-100 transition-colors duration-200" data-minutes="10080">
+            Next Week
+          </button>
+        </div>
+
+        <!-- Date Input -->
+        <div class="relative">
+          <input type="text" id="custom-time"
+            placeholder="Or pick a custom date & time..."
+            class="block w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg shadow-sm
+            focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
+            text-sm text-gray-900 transition-all duration-200">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email Notification -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <label class="block text-sm font-medium text-gray-700">Email Reminder <span class="text-red-500">*</span></label>
+          <span class="text-xs text-gray-500">(Required)</span>
+        </div>
+        <div class="relative">
+          <input type="email" id="email"
+            placeholder="your@email.com"
+            required
+            autocomplete="email"
+            class="block w-full pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg shadow-sm
+            focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
+            text-sm text-gray-900 transition-all duration-200">
+          <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500">Previously used emails will appear as suggestions</p>
+      </div>
+
+      <!-- Set Reminder Button -->
+      <button id="set-reminder"
+        class="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
+        text-white font-medium rounded-lg text-sm shadow-lg shadow-blue-500/20
+        focus:outline-none focus:ring-2 focus:ring-blue-500/20
+        transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+        Set Reminder
+      </button>
+    </div>
+  </div>
+
+  <!-- Reminders List View -->
+  <div id="reminders-list-view" class="max-w-md mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+        Your Reminders
+      </h1>
+      <div class="flex items-center gap-3">
+        <span id="reminder-count" class="text-sm text-gray-500"></span>
+        <button id="clear-all" class="text-sm text-gray-500 hover:text-gray-700 flex items-center">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Clear All
+        </button>
+      </div>
+    </div>
+
+    <!-- Reminders List -->
+    <div id="reminders-list" class="space-y-4">
+      <!-- Reminders will be inserted here -->
+    </div>
+
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-8">
+      <div class="text-gray-400 mb-4">
+        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <p class="text-gray-600 font-medium">No reminders yet</p>
+      <p class="text-gray-400 text-sm mt-1">Right-click on any text or image to set a reminder</p>
+    </div>
+  </div>
+
+  <script src="flatpickr.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
