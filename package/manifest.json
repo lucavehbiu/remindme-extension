@@ -3,6 +3,7 @@
   "name": "Remind Me - Smart Web Reminders",
   "version": "1.1",
   "description": "Set reminders for any web content with just a right-click. 100% private - all data stays on your device.",
+  "homepage_url": "https://lucavehbiu.github.io/remindme-extension/",
   "permissions": [
     "storage",
     "activeTab",
