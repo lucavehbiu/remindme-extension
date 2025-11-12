@@ -130,27 +130,17 @@
         </div>
       </div>
 
-      <!-- Email Notification -->
-      <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <label class="block text-sm font-medium text-gray-700">Email Reminder <span class="text-red-500">*</span></label>
-          <span class="text-xs text-gray-500">(Required)</span>
-        </div>
-        <div class="relative">
-          <input type="email" id="email"
-            placeholder="your@email.com"
-            required
-            autocomplete="email"
-            class="block w-full pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg shadow-sm
-            focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
-            text-sm text-gray-900 transition-all duration-200">
-          <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
+      <!-- Privacy Notice -->
+      <div class="bg-green-50 border border-green-100 rounded-lg p-3">
+        <div class="flex items-start gap-2">
+          <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+          </svg>
+          <div>
+            <p class="text-xs font-medium text-green-800">100% Private</p>
+            <p class="text-xs text-green-700 mt-0.5">All your data stays on your device. No external servers.</p>
           </div>
         </div>
-        <p class="text-xs text-gray-500">Previously used emails will appear as suggestions</p>
       </div>
 
       <!-- Set Reminder Button -->
