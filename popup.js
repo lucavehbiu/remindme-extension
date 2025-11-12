@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const emptyState = document.getElementById('empty-state');
   const customTime = document.getElementById('custom-time');
   const setToNowButton = document.getElementById('set-to-now');
+  const emailInput = document.getElementById('email');
   const cancelButton = document.getElementById('cancel-reminder');
   const reminderCount = document.getElementById('reminder-count');
 
@@ -58,6 +59,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Load last used email
+  const { lastUsedEmail, savedEmails = [] } = await chrome.storage.local.get(['lastUsedEmail', 'savedEmails']);
+  if (lastUsedEmail) {
+    emailInput.value = lastUsedEmail;
+  }
+
+  // Set up email autocomplete
+  emailInput.setAttribute('list', 'email-suggestions');
+  const datalist = document.createElement('datalist');
+  datalist.id = 'email-suggestions';
+  savedEmails.forEach(email => {
+    const option = document.createElement('option');
+    option.value = email;
+    datalist.appendChild(option);
+  });
+  emailInput.parentNode.appendChild(datalist);
+
+  // Save email when it changes
+  emailInput.addEventListener('change', async () => {
+    const email = emailInput.value.trim();
+    if (email && email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      await chrome.storage.local.set({ lastUsedEmail: email });
+
+      if (!savedEmails.includes(email)) {
+        savedEmails.push(email);
+        await chrome.storage.local.set({
+          savedEmails: savedEmails.slice(-5)
+        });
+      }
+    }
+  });
 
   // Check if we're setting a new reminder or viewing the list
   const { pendingReminder } = await chrome.storage.local.get('pendingReminder');
@@ -134,10 +166,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function createReminder(reminderTime) {
   console.log('Creating reminder for:', reminderTime.toLocaleString());
   const { pendingReminder } = await chrome.storage.local.get('pendingReminder');
+  const email = document.getElementById('email').value.trim();
   const description = document.getElementById('reminder-description').value.trim();
 
   if (!pendingReminder) {
     alert('No content selected for reminder');
+    return;
+  }
+
+  // Validate email if provided
+  if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    alert('Please enter a valid email address or leave it blank');
     return;
   }
 
@@ -146,7 +185,8 @@ async function createReminder(reminderTime) {
     type: pendingReminder.type,
     content: pendingReminder.content,
     pageUrl: pendingReminder.pageUrl,
-    description: description || null, // Include description if provided
+    description: description || null,
+    email: email || null, // Optional email
     timestamp: Date.now(),
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   };
@@ -183,7 +223,7 @@ async function createReminder(reminderTime) {
           </svg>
         </div>
         <h2 class="text-xl font-semibold text-gray-800">Reminder Set!</h2>
-        <p class="text-gray-600">You'll receive a browser notification on:</p>
+        <p class="text-gray-600">You'll receive ${email ? 'an email and ' : 'a '}browser notification on:</p>
         <p class="text-gray-800 font-medium">${reminderTime.toLocaleString(undefined, {
           weekday: 'long',
           year: 'numeric',
@@ -193,6 +233,7 @@ async function createReminder(reminderTime) {
           minute: '2-digit',
           timeZoneName: 'short'
         })}</p>
+        ${email ? `<p class="text-gray-500 text-sm">Email will be sent to: ${email}</p>` : ''}
         ${description ? `<p class="text-gray-600 text-sm mt-2">Note: ${description}</p>` : ''}
       </div>
     `;

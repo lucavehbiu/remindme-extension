@@ -121,27 +121,40 @@
 
         <div class="highlight-box">
             <h3>🔒 Our Privacy Commitment</h3>
-            <p>Remind Me is designed with <strong>privacy first</strong>. We believe your data belongs to you, and we've built this extension to respect that principle completely. All your data stays on your device.</p>
+            <p>Remind Me is designed with <strong>privacy first</strong>. All your data is stored locally by default. Email notifications are completely optional for long-term reliability.</p>
         </div>
 
         <h2>What Data We Collect</h2>
-        <p>The extension stores the following data <strong>locally on your device only</strong>:</p>
+        <p>The extension stores the following data <strong>locally on your device</strong>:</p>
         <ul>
             <li>Selected text, links, or images you choose to save as reminders</li>
             <li>URLs of pages where you set reminders</li>
             <li>Optional notes/descriptions you add to reminders</li>
             <li>Scheduled reminder times</li>
             <li>Reminder history (last 100 reminders)</li>
+            <li>Email addresses (only if you choose to provide one)</li>
+        </ul>
+
+        <h2>Optional Email Notifications</h2>
+        <p><strong>Email is completely optional.</strong> By default, you'll only receive browser notifications (100% private). If you want email reminders (useful for long-term reminders when your computer might be off), you can optionally provide an email address.</p>
+
+        <p><strong>When you provide an email:</strong></p>
+        <ul>
+            <li>Your email and reminder content are sent to Resend.com API only at the scheduled reminder time</li>
+            <li>We use Resend.com to deliver email notifications (<a href="https://resend.com/legal/privacy-policy" target="_blank">Resend's Privacy Policy</a>)</li>
+            <li>Email addresses are stored locally on your device for convenience (autocomplete)</li>
+            <li>You can choose not to provide an email - browser notifications will always work</li>
         </ul>
 
         <h2>Where Your Data is Stored</h2>
-        <p><strong>100% Local Storage:</strong> All data is stored exclusively in your browser's local storage (<code>chrome.storage.local</code>) and <strong>never leaves your device</strong>.</p>
+        <p><strong>Local by Default:</strong> All reminder data is stored in your browser's local storage (<code>chrome.storage.local</code>).</p>
+        <p><strong>Optional External Service:</strong> If you provide an email, reminder content is sent to Resend.com only when the reminder fires.</p>
 
         <h2>What We DON'T Do</h2>
         <ul>
-            <li>❌ We do <strong>NOT</strong> send your data to any external servers</li>
+            <li>❌ We do <strong>NOT</strong> require email - it's completely optional</li>
             <li>❌ We do <strong>NOT</strong> collect analytics or tracking data</li>
-            <li>❌ We do <strong>NOT</strong> share your data with third parties</li>
+            <li>❌ We do <strong>NOT</strong> sell your data to anyone</li>
             <li>❌ We do <strong>NOT</strong> require account creation or login</li>
             <li>❌ We do <strong>NOT</strong> use cookies for tracking</li>
             <li>❌ We do <strong>NOT</strong> access websites you haven't explicitly interacted with</li>
@@ -155,6 +168,7 @@
             <li><strong>contextMenus</strong> - To add "Remind me about this" to your right-click menu</li>
             <li><strong>alarms</strong> - To schedule and trigger reminders at the times you specify</li>
             <li><strong>notifications</strong> - To show you browser notifications when reminders are due</li>
+            <li><strong>host_permissions (api.resend.com)</strong> - Only used if you choose to provide an email address for optional email notifications</li>
         </ul>
 
         <h2>Data Retention</h2>
@@ -170,6 +184,7 @@
         <ul>
             <li>View all your reminders in the extension popup</li>
             <li>Delete individual reminders or clear all at once</li>
+            <li>Choose whether to use email notifications or browser-only</li>
             <li>No data recovery after deletion (it's truly gone)</li>
             <li>Export functionality (planned for future release)</li>
         </ul>
@@ -186,7 +201,7 @@
         </div>
 
         <div class="highlight-box" style="margin-top: 40px;">
-            <p style="text-align: center; font-size: 1.1rem;"><strong>Bottom Line:</strong> Your reminders stay on your device. Period.</p>
+            <p style="text-align: center; font-size: 1.1rem;"><strong>Bottom Line:</strong> Browser notifications are 100% private. Email is optional for reliability. You choose.</p>
         </div>
     </div>
 </body>
