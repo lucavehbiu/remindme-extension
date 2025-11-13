@@ -120,7 +120,14 @@ async function handleReminderNotification(reminderData) {
   }
 
   // Create notification and store URL for click handling
-  chrome.notifications.create(reminderData.pageUrl, notificationOptions);
+  console.log('Creating browser notification...');
+  chrome.notifications.create(reminderData.pageUrl, notificationOptions, (notificationId) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error creating notification:', chrome.runtime.lastError);
+    } else {
+      console.log('Browser notification created successfully:', notificationId);
+    }
+  });
 
     // Send email if user opted in
     if (reminderData.email) {

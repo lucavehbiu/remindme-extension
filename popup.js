@@ -286,20 +286,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.priority-btn').forEach(b => {
           b.classList.remove('active');
-          b.classList.remove('border-green-500', 'border-yellow-500', 'border-orange-500', 'border-red-500');
-          b.classList.remove('text-green-700', 'text-yellow-700', 'text-orange-700', 'text-red-700');
-          b.classList.add('border-gray-200', 'text-gray-700');
+          // Remove all possible priority colors
+          b.classList.remove('border-green-500', 'border-yellow-500', 'border-gray-900', 'border-red-500');
+          b.classList.remove('text-green-700', 'text-yellow-700', 'text-gray-900', 'text-red-700');
+          b.classList.remove('bg-white');
+          // Reset to default glass style
+          b.classList.add('border-gray-200/50', 'text-gray-700', 'bg-white/70');
         });
         btn.classList.add('active');
-        btn.classList.remove('border-gray-200', 'text-gray-700');
+        btn.classList.remove('border-gray-200/50', 'text-gray-700', 'bg-white/70');
         selectedPriority = btn.dataset.priority;
 
         // Add color based on priority
         const colors = {
-          low: ['border-green-500', 'text-green-700'],
-          medium: ['border-yellow-500', 'text-yellow-700'],
-          high: ['border-gray-900', 'text-gray-900'],
-          urgent: ['border-red-500', 'text-red-700']
+          low: ['border-green-500', 'text-green-700', 'bg-green-50/50'],
+          medium: ['border-yellow-500', 'text-yellow-700', 'bg-yellow-50/50'],
+          high: ['border-gray-900', 'text-gray-900', 'bg-white'],
+          urgent: ['border-red-500', 'text-red-700', 'bg-red-50/50']
         };
         btn.classList.add(...colors[selectedPriority]);
       });
