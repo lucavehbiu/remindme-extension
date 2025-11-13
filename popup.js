@@ -284,6 +284,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Set up list view event listeners (always, regardless of pendingReminder)
+  // Handle tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentTab = btn.dataset.tab;
+      loadReminders();
+    });
+  });
+
+  // Handle search
+  const searchInput = document.getElementById('search-reminders');
+  searchInput.addEventListener('input', (e) => {
+    searchQuery = e.target.value.toLowerCase();
+    loadReminders();
+  });
+
+  // Handle sort
+  document.getElementById('sort-reminders').addEventListener('change', (e) => {
+    currentSort = e.target.value;
+    loadReminders();
+  });
+
+  // Handle clear all button
+  document.getElementById('clear-all').addEventListener('click', async () => {
+    const confirmed = await showConfirmModal('Clear All Reminders', 'Are you sure you want to clear all reminders? This action cannot be undone.');
+    if (confirmed) {
+      await chrome.storage.local.set({ reminderHistory: [] });
+      await loadReminders();
+    }
+  });
+
+  // Handle reminder action buttons (snooze, complete, delete) - single event listener for all
+  remindersList.addEventListener('click', async (e) => {
+    const button = e.target.closest('button[data-action]');
+    if (!button) return;
+
+    const action = button.dataset.action;
+    const reminderId = button.dataset.reminderId;
+
+    if (action === 'snooze') {
+      await snoozeReminder(reminderId);
+    } else if (action === 'complete') {
+      await completeReminder(reminderId);
+    } else if (action === 'delete') {
+      await deleteReminder(reminderId);
+    }
+  });
+
   // Check if we're setting a new reminder or viewing the list
   const { pendingReminder } = await chrome.storage.local.get('pendingReminder');
 
@@ -372,56 +422,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Load and display reminders
     await loadReminders();
-
-    // Handle tab switching
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentTab = btn.dataset.tab;
-        loadReminders();
-      });
-    });
-
-    // Handle search
-    const searchInput = document.getElementById('search-reminders');
-    searchInput.addEventListener('input', (e) => {
-      searchQuery = e.target.value.toLowerCase();
-      loadReminders();
-    });
-
-    // Handle sort
-    document.getElementById('sort-reminders').addEventListener('change', (e) => {
-      currentSort = e.target.value;
-      loadReminders();
-    });
-
-    // Handle clear all button
-    document.getElementById('clear-all').addEventListener('click', async () => {
-      const confirmed = await showConfirmModal('Clear All Reminders', 'Are you sure you want to clear all reminders? This action cannot be undone.');
-      if (confirmed) {
-        await chrome.storage.local.set({ reminderHistory: [] });
-        await loadReminders();
-      }
-    });
-
-    // Handle reminder action buttons (snooze, complete, delete) - single event listener for all
-    const remindersList = document.getElementById('reminders-list');
-    remindersList.addEventListener('click', async (e) => {
-      const button = e.target.closest('button[data-action]');
-      if (!button) return;
-
-      const action = button.dataset.action;
-      const reminderId = button.dataset.reminderId;
-
-      if (action === 'snooze') {
-        await snoozeReminder(reminderId);
-      } else if (action === 'complete') {
-        await completeReminder(reminderId);
-      } else if (action === 'delete') {
-        await deleteReminder(reminderId);
-      }
-    });
   }
 });
 
