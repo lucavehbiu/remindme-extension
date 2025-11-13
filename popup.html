@@ -43,51 +43,70 @@
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+<body class="bg-gray-50 p-6">
   <!-- New Reminder View -->
   <div id="new-reminder-view" class="hidden">
-    <div class="max-w-md mx-auto space-y-6">
+    <div class="max-w-md mx-auto space-y-5">
       <!-- Header -->
-      <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+      <div class="flex items-center justify-between mb-1">
+        <h1 class="text-xl font-semibold text-gray-900 tracking-tight">
           New Reminder
         </h1>
-        <button id="cancel-reminder" class="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+        <button id="cancel-reminder" class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
-          Cancel
         </button>
       </div>
 
       <!-- Content Preview -->
-      <div id="content-preview" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 transition-all duration-200 hover:shadow-md">
-        <div id="preview-text" class="text-gray-600 text-sm leading-relaxed"></div>
-        <img id="preview-image" class="hidden max-w-full h-auto rounded-lg mt-3 border border-gray-100" />
+      <div id="content-preview" class="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+        <div id="preview-text" class="text-sm text-gray-700 leading-relaxed"></div>
+        <img id="preview-image" class="hidden max-w-full h-auto rounded-lg mt-3 border border-gray-200" />
       </div>
 
       <!-- Description Field -->
-      <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <label class="block text-sm font-medium text-gray-700">Add Description</label>
-          <span class="text-xs text-gray-500">(Optional)</span>
-        </div>
+      <div class="space-y-2">
+        <label class="text-xs font-medium text-gray-600 uppercase tracking-wide">Description</label>
         <textarea id="reminder-description"
           placeholder="Add any additional notes or context..."
-          class="block w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg shadow-sm
+          class="block w-full px-3 py-2 bg-white border border-gray-200 rounded-lg
           focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
-          text-sm text-gray-900 transition-all duration-200 resize-none"
+          text-sm text-gray-900 transition-all duration-200 resize-none placeholder:text-gray-400"
           rows="2"></textarea>
       </div>
 
+      <!-- Priority -->
+      <div class="space-y-2">
+        <label class="text-xs font-medium text-gray-600 uppercase tracking-wide">Priority</label>
+        <div class="flex gap-2">
+          <button type="button" data-priority="low" class="priority-btn flex-1 px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:border-gray-300 transition-all">
+            <span class="inline-block w-2 h-2 rounded-full bg-green-500 mr-1.5"></span>
+            Low
+          </button>
+          <button type="button" data-priority="medium" class="priority-btn flex-1 px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:border-gray-300 transition-all">
+            <span class="inline-block w-2 h-2 rounded-full bg-yellow-500 mr-1.5"></span>
+            Medium
+          </button>
+          <button type="button" data-priority="high" class="priority-btn active flex-1 px-3 py-2 bg-white border-2 border-orange-500 rounded-lg text-xs font-medium text-orange-700 transition-all">
+            <span class="inline-block w-2 h-2 rounded-full bg-orange-500 mr-1.5"></span>
+            High
+          </button>
+          <button type="button" data-priority="urgent" class="priority-btn flex-1 px-3 py-2 bg-white border-2 border-gray-200 rounded-lg text-xs font-medium text-gray-700 hover:border-gray-300 transition-all">
+            <span class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1.5"></span>
+            Urgent
+          </button>
+        </div>
+      </div>
+
       <!-- Custom Date/Time -->
-      <div class="space-y-3">
+      <div class="space-y-2">
         <div class="flex items-center justify-between">
-          <label class="block text-sm font-medium text-gray-700">Choose When</label>
+          <label class="text-xs font-medium text-gray-600 uppercase tracking-wide">When</label>
           <button id="set-to-now"
-            class="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            class="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 px-2 py-1 hover:bg-blue-50 rounded transition-colors">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             Set to Now
@@ -96,20 +115,20 @@
 
         <!-- Quick Actions -->
         <div class="grid grid-cols-4 gap-2">
-          <button class="quick-reminder px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50
-            rounded-lg hover:bg-blue-100 transition-colors duration-200" data-minutes="30">
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-gray-200
+            rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 button-lift" data-minutes="30">
             30m
           </button>
-          <button class="quick-reminder px-3 py-2 text-xs font-medium text-indigo-600 bg-indigo-50
-            rounded-lg hover:bg-indigo-100 transition-colors duration-200" data-minutes="60">
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-gray-200
+            rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 button-lift" data-minutes="60">
             1h
           </button>
-          <button class="quick-reminder px-3 py-2 text-xs font-medium text-purple-600 bg-purple-50
-            rounded-lg hover:bg-purple-100 transition-colors duration-200" data-minutes="1440">
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-gray-200
+            rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 button-lift" data-minutes="1440">
             Tomorrow
           </button>
-          <button class="quick-reminder px-3 py-2 text-xs font-medium text-violet-600 bg-violet-50
-            rounded-lg hover:bg-violet-100 transition-colors duration-200" data-minutes="10080">
+          <button class="quick-reminder px-3 py-2 text-xs font-medium text-slate-700 bg-white border border-gray-200
+            rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 button-lift" data-minutes="10080">
             Next Week
           </button>
         </div>
@@ -118,72 +137,111 @@
         <div class="relative">
           <input type="text" id="custom-time"
             placeholder="Or pick a custom date & time..."
-            class="block w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg shadow-sm
+            class="block w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg
             focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
-            text-sm text-gray-900 transition-all duration-200">
+            text-sm text-gray-900 transition-all duration-200 placeholder:text-gray-400">
           <div class="absolute inset-y-0 left-0 flex items-center pl-3">
-            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
           </div>
         </div>
       </div>
 
-      <!-- Email Notification -->
-      <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <label class="block text-sm font-medium text-gray-700">Email Reminder <span class="text-red-500">*</span></label>
-          <span class="text-xs text-gray-500">(Required)</span>
-        </div>
+      <!-- Email Notification (Optional) -->
+      <div class="space-y-2">
+        <label class="text-xs font-medium text-gray-600 uppercase tracking-wide flex items-center gap-2">
+          Email Backup
+          <span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full normal-case font-medium">Optional</span>
+        </label>
         <div class="relative">
           <input type="email" id="email"
             placeholder="your@email.com"
-            required
             autocomplete="email"
-            class="block w-full pl-4 pr-10 py-2.5 bg-white border border-gray-200 rounded-lg shadow-sm
+            class="block w-full pl-4 pr-10 py-2 bg-white border border-gray-200 rounded-lg
             focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
-            text-sm text-gray-900 transition-all duration-200">
+            text-sm text-gray-900 transition-all duration-200 placeholder:text-gray-400">
           <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
             </svg>
           </div>
         </div>
-        <p class="text-xs text-gray-500">Previously used emails will appear as suggestions</p>
+        <p class="text-xs text-gray-500">Get email if computer is off. Secured via Make.com.</p>
+      </div>
+
+      <!-- Privacy Notice -->
+      <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-3">
+        <div class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          <p class="text-xs text-emerald-700">Browser notifications always private. Data stored locally.</p>
+        </div>
       </div>
 
       <!-- Set Reminder Button -->
       <button id="set-reminder"
-        class="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700
-        text-white font-medium rounded-lg text-sm shadow-lg shadow-blue-500/20
+        class="w-full py-2.5 bg-blue-600 hover:bg-blue-700
+        text-white font-medium rounded-lg text-sm
         focus:outline-none focus:ring-2 focus:ring-blue-500/20
-        transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
+        transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] button-lift">
         Set Reminder
       </button>
     </div>
   </div>
 
   <!-- Reminders List View -->
-  <div id="reminders-list-view" class="max-w-md mx-auto space-y-6">
+  <div id="reminders-list-view" class="max-w-md mx-auto space-y-4">
     <!-- Header -->
     <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
-        Your Reminders
-      </h1>
-      <div class="flex items-center gap-3">
-        <span id="reminder-count" class="text-sm text-gray-500"></span>
-        <button id="clear-all" class="text-sm text-gray-500 hover:text-gray-700 flex items-center">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-          </svg>
-          Clear All
+      <div>
+        <h1 class="text-xl font-semibold text-gray-900 tracking-tight">
+          Your Reminders
+        </h1>
+        <span id="reminder-count" class="text-xs text-gray-500"></span>
+      </div>
+      <button id="clear-all" class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="relative">
+      <input type="text" id="search-reminders" placeholder="Search reminders..."
+        class="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm
+        focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:outline-none
+        placeholder:text-gray-400 transition-all duration-200">
+      <svg class="w-4 h-4 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+    </div>
+
+    <!-- Tabs + Sort -->
+    <div class="flex items-center justify-between gap-3">
+      <!-- Tabs -->
+      <div class="flex bg-gray-100 rounded-lg p-1">
+        <button data-tab="active" class="tab-btn active px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200">
+          Active
+        </button>
+        <button data-tab="completed" class="tab-btn px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-200">
+          Past
         </button>
       </div>
+
+      <!-- Sort Dropdown -->
+      <select id="sort-reminders" class="text-xs px-2 py-1.5 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+        <option value="scheduled">By Time</option>
+        <option value="priority">By Priority</option>
+        <option value="created">By Created</option>
+      </select>
     </div>
 
     <!-- Reminders List -->
-    <div id="reminders-list" class="space-y-4">
+    <div id="reminders-list" class="space-y-2">
       <!-- Reminders will be inserted here -->
     </div>
 
@@ -196,6 +254,46 @@
       </div>
       <p class="text-gray-600 font-medium">No reminders yet</p>
       <p class="text-gray-400 text-sm mt-1">Right-click on any text or image to set a reminder</p>
+    </div>
+  </div>
+
+  <!-- Custom Modal for Confirmations -->
+  <div id="custom-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-sm w-full mx-4 animate-in">
+      <div class="p-6">
+        <h3 id="modal-title" class="text-lg font-semibold text-gray-900 mb-2"></h3>
+        <p id="modal-message" class="text-sm text-gray-600 mb-4"></p>
+        <div id="modal-buttons" class="flex gap-2 justify-end"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Modal for Snooze Selection -->
+  <div id="snooze-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-sm w-full mx-4 animate-in">
+      <div class="p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Snooze Reminder</h3>
+        <div class="space-y-2 mb-4">
+          <button data-snooze-minutes="5" class="snooze-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all">
+            <span class="font-medium text-gray-900">5 minutes</span>
+          </button>
+          <button data-snooze-minutes="15" class="snooze-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all">
+            <span class="font-medium text-gray-900">15 minutes</span>
+          </button>
+          <button data-snooze-minutes="60" class="snooze-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all">
+            <span class="font-medium text-gray-900">1 hour</span>
+          </button>
+          <button data-snooze-minutes="180" class="snooze-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all">
+            <span class="font-medium text-gray-900">3 hours</span>
+          </button>
+          <button data-snooze-minutes="1440" class="snooze-option w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all">
+            <span class="font-medium text-gray-900">Tomorrow</span>
+          </button>
+        </div>
+        <button id="snooze-cancel" class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+          Cancel
+        </button>
+      </div>
     </div>
   </div>
 

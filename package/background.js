@@ -78,7 +78,31 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
 
     console.log('Processing reminder data:', reminderData);
 
-    // Send email using Resend
+    // Always create browser notification
+    const notificationOptions = {
+      type: 'basic',
+      iconUrl: 'icons/icon128.png',
+      title: 'Reminder: Time to check this out!',
+      message: reminderData.type === 'image'
+        ? 'Your saved image reminder'
+        : reminderData.content.substring(0, 150) + (reminderData.content.length > 150 ? '...' : ''),
+      priority: 2,
+      requireInteraction: true,
+      buttons: [
+        { title: 'Open' },
+        { title: 'Dismiss' }
+      ]
+    };
+
+    // Add description if present
+    if (reminderData.description) {
+      notificationOptions.message = `${reminderData.description}\n\n${notificationOptions.message}`;
+    }
+
+    // Create notification and store URL for click handling
+    chrome.notifications.create(reminderData.pageUrl, notificationOptions);
+
+    // Send email if user opted in
     if (reminderData.email) {
       try {
         console.log('Sending email to:', reminderData.email);
@@ -153,6 +177,22 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   } catch (error) {
     console.error('Error handling alarm:', error);
   }
+});
+
+// Handle notification clicks
+chrome.notifications.onClicked.addListener((notificationId) => {
+  // notificationId is the pageUrl we stored
+  chrome.tabs.create({ url: notificationId });
+  chrome.notifications.clear(notificationId);
+});
+
+// Handle notification button clicks
+chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+  if (buttonIndex === 0) {
+    // Open button clicked
+    chrome.tabs.create({ url: notificationId });
+  }
+  chrome.notifications.clear(notificationId);
 });
 
 // Listen for messages from content script

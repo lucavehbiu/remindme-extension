@@ -9,6 +9,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   const cancelButton = document.getElementById('cancel-reminder');
   const reminderCount = document.getElementById('reminder-count');
 
+  // Function to set custom time
+  function setCustomTime(minutes) {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() + minutes);
+    fp.setDate(date);
+  }
+
   // Function to clear pending reminder and show list view
   const cancelReminder = async () => {
     await chrome.storage.local.remove('pendingReminder');
@@ -135,17 +142,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
 
-      // Validate email field
-      const email = emailInput.value.trim();
-      if (!email) {
-        alert('Please enter an email address to receive the reminder');
-        return;
-      }
-      if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
-        alert('Please enter a valid email address');
-        return;
-      }
-
       console.log('Setting reminder for:', selectedDate.toLocaleString());
       createReminder(selectedDate);
     });
@@ -178,14 +174,20 @@ async function createReminder(reminderTime) {
     return;
   }
 
+  // Validate email if provided
+  if (email && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    alert('Please enter a valid email address or leave it blank');
+    return;
+  }
+
   // Create alarm with reminder data
   const alarmData = {
     type: pendingReminder.type,
     content: pendingReminder.content,
     pageUrl: pendingReminder.pageUrl,
-    description: description || null, // Include description if provided
+    description: description || null,
+    email: email || null, // Optional email
     timestamp: Date.now(),
-    email: email || null,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   };
 
@@ -221,7 +223,7 @@ async function createReminder(reminderTime) {
           </svg>
         </div>
         <h2 class="text-xl font-semibold text-gray-800">Reminder Set!</h2>
-        <p class="text-gray-600">You'll receive an email reminder on:</p>
+        <p class="text-gray-600">You'll receive ${email ? 'an email and ' : 'a '}browser notification on:</p>
         <p class="text-gray-800 font-medium">${reminderTime.toLocaleString(undefined, {
           weekday: 'long',
           year: 'numeric',
@@ -231,7 +233,7 @@ async function createReminder(reminderTime) {
           minute: '2-digit',
           timeZoneName: 'short'
         })}</p>
-        <p class="text-gray-500 text-sm">at ${email}</p>
+        ${email ? `<p class="text-gray-500 text-sm">Email will be sent to: ${email}</p>` : ''}
         ${description ? `<p class="text-gray-600 text-sm mt-2">Note: ${description}</p>` : ''}
       </div>
     `;
@@ -277,9 +279,6 @@ async function loadReminders() {
             <p class="text-xs text-gray-500">
               Scheduled for: ${new Date(reminder.scheduledFor).toLocaleString()}
             </p>
-            ${reminder.email ?
-              `<p class="text-xs text-gray-400">Email notification: ${reminder.email}</p>` :
-              ''}
           </div>
           <a href="${reminder.pageUrl}" target="_blank"
             class="text-blue-600 hover:text-blue-700">

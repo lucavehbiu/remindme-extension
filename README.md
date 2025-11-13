@@ -1,15 +1,30 @@
 # Remind Me - Smart Web Reminders
 
-A Chrome extension that lets you set reminders for any web content with just a right-click. Perfect for remembering to follow up on articles, images, or any web content later.
+A **100% private**, Chrome extension that lets you set reminders for any web content with just a right-click. Perfect for remembering to follow up on articles, images, or any web content later.
 
 ## Features
 
+- 🔒 **100% Private** - All data stays on your device, zero external servers
 - 🖱️ Right-click on any text or image to set a reminder
 - ⏰ Quick reminder presets (30min, 1h, tomorrow, next week)
-- 📅 Custom date/time picker
-- 📧 Optional email notifications via Resend
-- 🔔 Chrome notifications when reminders are due
+- 📅 Custom date/time picker with elegant UI
+- 🔔 Native browser notifications when reminders are due
+- 📝 Add optional notes/descriptions to your reminders
 - 📱 Modern, clean UI with Tailwind CSS
+- 🚀 Minimal permissions - only what's needed
+
+## Privacy First
+
+Unlike other "save for later" tools, Remind Me is designed with privacy as a core principle:
+
+- ✅ All data stored locally in your browser (`chrome.storage.local`)
+- ✅ No external API calls or data transmission
+- ✅ No analytics or tracking
+- ✅ No account required
+- ✅ Open source and auditable
+- ✅ Minimal permissions (storage, alarms, notifications, contextMenus, activeTab only)
+
+Read our full [Privacy Policy](PRIVACY.md)
 
 ## Installation
 
@@ -32,18 +47,10 @@ A Chrome extension that lets you set reminders for any web content with just a r
 
 The extension is built with vanilla JavaScript and Tailwind CSS for simplicity and performance. Key files:
 
-- `manifest.json`: Extension configuration
+- `manifest.json`: Extension configuration (v3, minimal permissions)
 - `popup.html/js`: The reminder creation interface
-- `contentScript.js`: Handles right-click selection
-- `background.js`: Manages alarms and notifications
-
-## Email Notifications
-
-To enable email notifications:
-
-1. Sign up for a [Resend](https://resend.com) account
-2. Get your API key
-3. Add your Resend API key to the extension's settings
+- `background.js`: Manages context menus, alarms, and notifications
+- `PRIVACY.md`: Detailed privacy policy
 
 ## Contributing
 
