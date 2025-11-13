@@ -4,7 +4,7 @@
   "description": "Chrome extension for setting smart web reminders",
   "scripts": {
     "build:css": "tailwindcss -i ./src/styles.css -o ./dist/output.css --minify",
-    "build": "mkdir -p dist && npm run build:css && cp manifest.json popup.html popup.js background.js flatpickr.min.js flatpickr.min.css material_blue.css dist/ && cp -r icons dist/",
+    "build": "mkdir -p dist && npm run build:css && cp manifest.json popup.html popup.js background.js unnamed.webp flatpickr.min.js flatpickr.min.css material_blue.css dist/ && cp -r icons dist/",
     "watch": "tailwindcss -i ./src/styles.css -o ./dist/output.css --watch",
     "dev": "npm run build && npm run watch"
   },

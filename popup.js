@@ -377,6 +377,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadReminders();
       }
     });
+
+    // Handle reminder action buttons (snooze, complete, delete) - single event listener for all
+    const remindersList = document.getElementById('reminders-list');
+    remindersList.addEventListener('click', async (e) => {
+      const button = e.target.closest('button[data-action]');
+      if (!button) return;
+
+      const action = button.dataset.action;
+      const reminderId = button.dataset.reminderId;
+
+      if (action === 'snooze') {
+        await snoozeReminder(reminderId);
+      } else if (action === 'complete') {
+        await completeReminder(reminderId);
+      } else if (action === 'delete') {
+        await deleteReminder(reminderId);
+      }
+    });
   }
 });
 
@@ -442,11 +460,9 @@ async function createReminder(reminderTime) {
       <div class="flex flex-col items-center justify-center py-12 space-y-6">
         <!-- Success Icon -->
         <div class="relative">
-          <div class="absolute inset-0 bg-emerald-100 rounded-full blur-xl opacity-50"></div>
-          <div class="relative bg-emerald-50 rounded-full p-4">
-            <svg class="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
+          <div class="absolute inset-0 bg-blue-100 rounded-full blur-xl opacity-50"></div>
+          <div class="relative bg-white rounded-full p-4 shadow-lg">
+            <img src="unnamed.webp" alt="Remind Me" class="w-16 h-16">
           </div>
         </div>
 
@@ -684,62 +700,66 @@ async function loadReminders() {
           </div>
 
           <!-- Action Buttons -->
-          <div class="px-4 pb-4 pt-3 border-t border-gray-100 flex gap-2">
-            <button data-action="snooze" data-reminder-id="${reminder.id}"
-                    class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2
-                           bg-violet-50 text-violet-700 hover:bg-violet-100
-                           rounded-lg text-xs font-medium
-                           transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              Snooze
-            </button>
+          ${reminder.status === 'completed'
+            ? `<!-- Completed - show only delete -->
+               <div class="px-4 pb-4 pt-3 border-t border-gray-100 flex gap-2">
+                 <div class="flex-1 flex items-center gap-2 text-emerald-700 text-sm">
+                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                   </svg>
+                   Completed
+                 </div>
+                 <button data-action="delete" data-reminder-id="${reminder.id}"
+                         class="flex items-center justify-center px-3 py-2
+                                bg-rose-50 text-rose-700 hover:bg-rose-100
+                                rounded-lg text-xs font-medium
+                                transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
+                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                   </svg>
+                 </button>
+               </div>`
+            : `<!-- Active - show all actions -->
+               <div class="px-4 pb-4 pt-3 border-t border-gray-100 flex gap-2">
+                 <button data-action="snooze" data-reminder-id="${reminder.id}"
+                         class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2
+                                bg-violet-50 text-violet-700 hover:bg-violet-100
+                                rounded-lg text-xs font-medium
+                                transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
+                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                   </svg>
+                   Snooze
+                 </button>
 
-            <button data-action="complete" data-reminder-id="${reminder.id}"
-                    class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2
-                           bg-emerald-50 text-emerald-700 hover:bg-emerald-100
-                           rounded-lg text-xs font-medium
-                           transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-              </svg>
-              Done
-            </button>
+                 <button data-action="complete" data-reminder-id="${reminder.id}"
+                         class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2
+                                bg-emerald-50 text-emerald-700 hover:bg-emerald-100
+                                rounded-lg text-xs font-medium
+                                transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
+                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                   </svg>
+                   Done
+                 </button>
 
-            <button data-action="delete" data-reminder-id="${reminder.id}"
-                    class="flex items-center justify-center px-3 py-2
-                           bg-rose-50 text-rose-700 hover:bg-rose-100
-                           rounded-lg text-xs font-medium
-                           transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-              </svg>
-            </button>
-          </div>
+                 <button data-action="delete" data-reminder-id="${reminder.id}"
+                         class="flex items-center justify-center px-3 py-2
+                                bg-rose-50 text-rose-700 hover:bg-rose-100
+                                rounded-lg text-xs font-medium
+                                transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
+                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                   </svg>
+                 </button>
+               </div>`
+          }
         </div>
       `;
   };
 
   // Render all reminders in a simple list
   remindersList.innerHTML = `<div class="space-y-2">${filtered.map(renderReminderCard).join('')}</div>`;
-
-  // Add event listeners for action buttons using event delegation
-  remindersList.addEventListener('click', async (e) => {
-    const button = e.target.closest('button[data-action]');
-    if (!button) return;
-
-    const action = button.dataset.action;
-    const reminderId = button.dataset.reminderId;
-
-    if (action === 'snooze') {
-      await snoozeReminder(reminderId);
-    } else if (action === 'complete') {
-      await completeReminder(reminderId);
-    } else if (action === 'delete') {
-      await deleteReminder(reminderId);
-    }
-  });
 }
 
 // Snooze reminder function

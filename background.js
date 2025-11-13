@@ -26,10 +26,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     content = info.selectionText || info.linkText || new URL(info.linkUrl).pathname;
     url = info.linkUrl; // Use the actual clicked link URL
   } else {
-    // This is a text selection
+    // This is a text selection - use Text Fragments to link to exact location
     type = 'text';
     content = info.selectionText;
-    url = info.pageUrl;
+    // Create a text fragment URL that scrolls to and highlights the selected text
+    const textFragment = encodeURIComponent(info.selectionText.substring(0, 100).trim());
+    url = `${info.pageUrl}#:~:text=${textFragment}`;
   }
 
   console.log('Creating reminder with:', { type, content, url });
@@ -143,8 +145,8 @@ async function handleReminderNotification(reminderData) {
                     <!-- Header -->
                     <tr>
                       <td style="padding: 32px 32px 24px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-                        <div style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); padding: 12px; border-radius: 12px; margin-bottom: 16px;">
-                          <div style="font-size: 24px;">⏰</div>
+                        <div style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); width: 64px; height: 64px; border-radius: 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                          <div style="font-size: 32px; line-height: 1;">⏰</div>
                         </div>
                         <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827;">Reminder Notification</h1>
                         <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">You asked to be reminded about this</p>
@@ -170,7 +172,7 @@ async function handleReminderNotification(reminderData) {
                           ${reminderData.type === 'link' || reminderData.pageUrl ?
                             `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
                               <p style="margin: 0 0 8px; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Source</p>
-                              <p style="margin: 0; font-size: 14px; color: #4b5563;">${new URL(reminderData.pageUrl).hostname}</p>
+                              <a href="${reminderData.pageUrl}" style="margin: 0; font-size: 13px; color: #2563eb; word-break: break-all; text-decoration: none;">${reminderData.pageUrl}</a>
                             </div>` :
                             ''}
                         </div>
@@ -190,9 +192,12 @@ async function handleReminderNotification(reminderData) {
                     <!-- Footer -->
                     <tr>
                       <td style="padding: 24px 32px; background-color: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 12px 12px;">
-                        <p style="margin: 0; font-size: 12px; color: #6b7280; text-align: center; line-height: 1.6;">
+                        <p style="margin: 0 0 12px; font-size: 12px; color: #6b7280; text-align: center; line-height: 1.6;">
                           This reminder was sent by your <strong>Remind Me</strong> browser extension.<br>
                           You scheduled this notification to help you remember important web content.
+                        </p>
+                        <p style="margin: 0; font-size: 11px; color: #9ca3af; text-align: center;">
+                          Built by <a href="https://lucavehbiu.com" style="color: #3b82f6; text-decoration: none;">lucavehbiu.com</a>
                         </p>
                       </td>
                     </tr>
