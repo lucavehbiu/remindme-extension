@@ -7,6 +7,80 @@ function generateUUID() {
   });
 }
 
+// Custom modal helper functions
+function showConfirmModal(title, message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('custom-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalMessage = document.getElementById('modal-message');
+    const modalButtons = document.getElementById('modal-buttons');
+
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    modalButtons.innerHTML = `
+      <button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+        Cancel
+      </button>
+      <button id="modal-confirm" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+        Delete
+      </button>
+    `;
+
+    modal.classList.remove('hidden');
+
+    const handleConfirm = () => {
+      modal.classList.add('hidden');
+      cleanup();
+      resolve(true);
+    };
+
+    const handleCancel = () => {
+      modal.classList.add('hidden');
+      cleanup();
+      resolve(false);
+    };
+
+    const cleanup = () => {
+      document.getElementById('modal-confirm').removeEventListener('click', handleConfirm);
+      document.getElementById('modal-cancel').removeEventListener('click', handleCancel);
+    };
+
+    document.getElementById('modal-confirm').addEventListener('click', handleConfirm);
+    document.getElementById('modal-cancel').addEventListener('click', handleCancel);
+  });
+}
+
+function showSnoozeModal() {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('snooze-modal');
+    modal.classList.remove('hidden');
+
+    const handleChoice = (e) => {
+      const button = e.target.closest('.snooze-option');
+      if (button) {
+        const minutes = parseInt(button.dataset.snoozeMinutes);
+        modal.classList.add('hidden');
+        cleanup();
+        resolve(minutes);
+      }
+    };
+
+    const handleCancel = () => {
+      modal.classList.add('hidden');
+      cleanup();
+      resolve(null);
+    };
+
+    const cleanup = () => {
+      modal.removeEventListener('click', handleChoice);
+      document.getElementById('snooze-cancel').removeEventListener('click', handleCancel);
+    };
+
+    modal.addEventListener('click', handleChoice);
+    document.getElementById('snooze-cancel').addEventListener('click', handleCancel);
+  });
+}
+
 // Calculate urgency level based on scheduled time
 function getUrgencyLevel(scheduledFor) {
   const now = Date.now();
@@ -297,7 +371,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Handle clear all button
     document.getElementById('clear-all').addEventListener('click', async () => {
-      if (confirm('Are you sure you want to clear all reminders?')) {
+      const confirmed = await showConfirmModal('Clear All Reminders', 'Are you sure you want to clear all reminders? This action cannot be undone.');
+      if (confirmed) {
         await chrome.storage.local.set({ reminderHistory: [] });
         await loadReminders();
       }
@@ -407,6 +482,7 @@ async function createReminder(reminderTime) {
               <div class="flex-1 text-sm">
                 <p class="text-gray-500 mb-1">Email backup</p>
                 <p class="text-gray-900 font-medium">${email}</p>
+                <p class="text-amber-600 text-xs mt-1">📫 Check spam folder if not received</p>
               </div>
             </div>
           ` : ''}
@@ -668,14 +744,9 @@ async function loadReminders() {
 
 // Snooze reminder function
 async function snoozeReminder(reminderId) {
-  const minutes = [5, 15, 60, 180, 1440]; // 5min, 15min, 1hr, 3hr, 1 day
-  const labels = ['5 minutes', '15 minutes', '1 hour', '3 hours', 'Tomorrow'];
+  const snoozeMinutes = await showSnoozeModal();
 
-  const choice = prompt(`Snooze for how long?\n\n${labels.map((l, i) => `${i + 1}. ${l}`).join('\n')}\n\nEnter 1-5:`);
-
-  if (!choice || choice < 1 || choice > 5) return;
-
-  const snoozeMinutes = minutes[choice - 1];
+  if (!snoozeMinutes) return;
   const newTime = new Date();
   newTime.setMinutes(newTime.getMinutes() + snoozeMinutes);
 
@@ -743,7 +814,8 @@ async function completeReminder(reminderId) {
 
 // Delete reminder function
 async function deleteReminder(reminderId) {
-  if (!confirm('Delete this reminder?')) return;
+  const confirmed = await showConfirmModal('Delete Reminder', 'Are you sure you want to delete this reminder? This action cannot be undone.');
+  if (!confirmed) return;
 
   try {
     // Get reminder data
