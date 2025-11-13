@@ -151,6 +151,30 @@ function getRelativeTime(scheduledFor) {
   return new Date(scheduledFor).toLocaleDateString();
 }
 
+// Format absolute time nicely: "12th Nov 25, 8:15 PM"
+function formatAbsoluteTime(timestamp) {
+  const date = new Date(timestamp);
+
+  // Get day with ordinal suffix (1st, 2nd, 3rd, 4th, etc.)
+  const day = date.getDate();
+  const suffix = ['th', 'st', 'nd', 'rd'][day % 10 > 3 ? 0 : (day % 100 - day % 10 != 10) * day % 10];
+
+  // Get month short name
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const month = months[date.getMonth()];
+
+  // Get year (last 2 digits)
+  const year = String(date.getFullYear()).slice(-2);
+
+  // Get time in 12-hour format
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+
+  return `${day}${suffix} ${month} ${year}, ${hours}:${minutes} ${ampm}`;
+}
+
 // Get favicon URL
 function getFaviconUrl(pageUrl) {
   try {
@@ -484,13 +508,7 @@ async function createReminder(reminderTime) {
               </svg>
               <div class="flex-1 text-sm">
                 <p class="text-gray-500 mb-1">Scheduled for</p>
-                <p class="text-gray-900 font-medium">${reminderTime.toLocaleString(undefined, {
-                  weekday: 'long',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}</p>
+                <p class="text-gray-900 font-medium">${formatAbsoluteTime(reminderTime.getTime())}</p>
               </div>
             </div>
 
@@ -600,7 +618,7 @@ async function loadReminders() {
     const urgency = getUrgencyLevel(reminder.scheduledFor);
     const config = urgencyConfig[urgency];
     const relativeTime = getRelativeTime(reminder.scheduledFor);
-    const absoluteTime = new Date(reminder.scheduledFor).toLocaleString();
+    const absoluteTime = formatAbsoluteTime(reminder.scheduledFor);
     const faviconUrl = getFaviconUrl(reminder.pageUrl);
     const hostname = new URL(reminder.pageUrl).hostname;
 
