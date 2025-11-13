@@ -670,13 +670,13 @@ async function loadReminders() {
             <div class="space-y-2">
 
               <!-- Favicon + URL (clickable) -->
-              <a href="${reminder.pageUrl}" target="_blank" class="flex items-center gap-2 text-xs text-gray-500 hover:text-blue-600 transition-colors group/hostname">
+              <a href="${reminder.pageUrl}" target="_blank" class="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-blue-600 transition-colors group/hostname">
                 <img src="${faviconUrl}"
                      alt="favicon"
-                     class="w-4 h-4 rounded-sm"
+                     class="w-3.5 h-3.5 rounded-sm"
                      onerror="this.style.display='none'">
                 <span class="truncate group-hover/hostname:underline">${hostname}</span>
-                <svg class="w-3 h-3 opacity-0 group-hover/hostname:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-2.5 h-2.5 opacity-0 group-hover/hostname:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                 </svg>
               </a>
@@ -684,19 +684,19 @@ async function loadReminders() {
               <!-- Content Preview -->
               <div class="content-preview">
                 ${reminder.type === 'image'
-                  ? `<div class="flex items-center gap-2 text-sm font-medium text-blue-700">
-                       <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  ? `<div class="flex items-center gap-2 text-xs font-medium text-blue-700">
+                       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                        </svg>
                        Image reminder
                      </div>`
-                  : `<p class="text-sm text-gray-900 leading-relaxed">${reminder.content.substring(0, 100)}${reminder.content.length > 100 ? '...' : ''}</p>`}
+                  : `<p class="text-xs text-gray-900 leading-relaxed">${reminder.content.substring(0, 100)}${reminder.content.length > 100 ? '...' : ''}</p>`}
               </div>
 
               <!-- Description (if exists) -->
               ${reminder.description
-                ? `<div class="flex items-start gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
-                     <svg class="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                ? `<div class="flex items-start gap-1.5 text-[11px] text-gray-600 bg-gray-50 p-2 rounded-lg">
+                     <svg class="w-3.5 h-3.5 flex-shrink-0 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                      </svg>
                      <span>${reminder.description}</span>
@@ -704,8 +704,8 @@ async function loadReminders() {
                 : ''}
 
               <!-- Time Display -->
-              <div class="flex items-center gap-2 text-xs ${config.text}">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="flex items-center gap-1.5 text-[11px] ${config.text}">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <span class="font-medium">${relativeTime}</span>
