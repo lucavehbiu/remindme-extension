@@ -145,17 +145,42 @@ async function handleReminderNotification(reminderData) {
                     <!-- Header -->
                     <tr>
                       <td style="padding: 32px 32px 24px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-                        <div style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); width: 64px; height: 64px; border-radius: 16px; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-                          <div style="font-size: 32px; line-height: 1;">⏰</div>
-                        </div>
-                        <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827;">Reminder Notification</h1>
-                        <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">You asked to be reminded about this</p>
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                          <tr>
+                            <td style="text-align: center;">
+                              <div style="width: 64px; height: 64px; margin: 0 auto 16px; background: #ffffff; border-radius: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 8px;">
+                                <img src="https://lucavehbiu.github.io/remindme-extension/unnamed.webp" alt="Remind Me" style="width: 48px; height: 48px; display: block; margin: 0 auto;" />
+                              </div>
+                              <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827;">Reminder Notification</h1>
+                              <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">You asked to be reminded about this</p>
+                            </td>
+                          </tr>
+                        </table>
                       </td>
                     </tr>
 
                     <!-- Content -->
                     <tr>
                       <td style="padding: 32px;">
+                        <!-- Priority & Urgency Badges -->
+                        <div style="margin-bottom: 20px; text-align: center;">
+                          ${(() => {
+                            const priorityColors = {
+                              low: { bg: '#f0fdf4', text: '#166534', dot: '#22c55e' },
+                              medium: { bg: '#fef9c3', text: '#854d0e', dot: '#eab308' },
+                              high: { bg: '#ffedd5', text: '#9a3412', dot: '#f97316' },
+                              urgent: { bg: '#fee2e2', text: '#991b1b', dot: '#ef4444' }
+                            };
+                            const p = priorityColors[reminderData.priority || 'high'];
+                            return `
+                              <span style="display: inline-block; background-color: ${p.bg}; color: ${p.text}; padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-right: 8px;">
+                                <span style="display: inline-block; width: 8px; height: 8px; background-color: ${p.dot}; border-radius: 50%; margin-right: 6px;"></span>
+                                ${(reminderData.priority || 'high').toUpperCase()} PRIORITY
+                              </span>
+                            `;
+                          })()}
+                        </div>
+
                         ${reminderData.description ? `
                           <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 6px; padding: 16px; margin-bottom: 24px;">
                             <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e40af; margin-bottom: 4px;">Your Note:</p>
@@ -169,9 +194,9 @@ async function handleReminderNotification(reminderData) {
                             `<p style="margin: 0; font-size: 15px; line-height: 1.7; color: #374151; white-space: pre-wrap;">${reminderData.content}</p>`
                           }
 
-                          ${reminderData.type === 'link' || reminderData.pageUrl ?
+                          ${reminderData.pageUrl ?
                             `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                              <p style="margin: 0 0 8px; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Source</p>
+                              <p style="margin: 0 0 8px; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Link</p>
                               <a href="${reminderData.pageUrl}" style="margin: 0; font-size: 13px; color: #2563eb; word-break: break-all; text-decoration: none;">${reminderData.pageUrl}</a>
                             </div>` :
                             ''}
@@ -224,17 +249,19 @@ async function handleReminderNotification(reminderData) {
         const emailText = `
 REMINDER NOTIFICATION
 
+Priority: ${(reminderData.priority || 'high').toUpperCase()}
+
 ${reminderData.description ? `Your Note: ${reminderData.description}\n\n` : ''}
 
 ${reminderData.type === 'image' ? '[Image Reminder]' : reminderData.content}
 
-${reminderData.pageUrl ? `\nSource: ${new URL(reminderData.pageUrl).hostname}` : ''}
-
-View the original: ${reminderData.pageUrl}
+${reminderData.pageUrl ? `\nLink: ${reminderData.pageUrl}` : ''}
 
 ---
 This reminder was sent by your Remind Me browser extension.
 You scheduled this notification to help you remember important web content.
+
+Built by lucavehbiu.com
         `.trim();
 
         // Send via Make.com webhook (API key secured server-side)
