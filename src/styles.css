@@ -101,3 +101,82 @@ button:active {
   transform: translateY(-10px);
   transition: opacity 200ms ease-in, transform 200ms ease-in;
 }
+
+/* ============================================
+   V2.0 UI Animations
+   ============================================ */
+
+/* Urgency pulse animation for overdue items */
+@keyframes urgentPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.overdue-pulse {
+  animation: urgentPulse 2s ease-in-out infinite;
+}
+
+/* Card entrance animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-enter {
+  animation: slideUp 200ms ease-out;
+}
+
+/* Button lift effect */
+.button-lift {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
+}
+
+.button-lift:hover {
+  transform: translateY(-1px) scale(1.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.button-lift:active {
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Smooth card hover effects */
+.reminder-card {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, box-shadow;
+}
+
+/* GPU-accelerated transforms */
+.transform-gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Tabs styling */
+.tab-btn {
+  color: #6b7280;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tab-btn.active {
+  background: white;
+  color: #111827;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.tab-btn:hover:not(.active) {
+  color: #374151;
+}

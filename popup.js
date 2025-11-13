@@ -1,3 +1,98 @@
+// UUID generator
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+// Calculate urgency level based on scheduled time
+function getUrgencyLevel(scheduledFor) {
+  const now = Date.now();
+  const scheduled = new Date(scheduledFor).getTime();
+  const diffHours = (scheduled - now) / (1000 * 60 * 60);
+
+  if (scheduled < now) return 'overdue';
+  if (diffHours < 2) return 'soon';
+  if (diffHours < 24) return 'today';
+  return 'upcoming';
+}
+
+// Urgency configuration
+const urgencyConfig = {
+  overdue: {
+    bg: 'bg-red-50',
+    text: 'text-red-700',
+    border: 'border-l-4 border-red-500',
+    dot: 'bg-red-500',
+    label: 'Overdue',
+    animate: 'overdue-pulse'
+  },
+  soon: {
+    bg: 'bg-amber-50',
+    text: 'text-amber-700',
+    border: 'border-l-4 border-amber-500',
+    dot: 'bg-amber-500',
+    label: 'Due soon',
+    animate: ''
+  },
+  today: {
+    bg: 'bg-blue-50',
+    text: 'text-blue-700',
+    border: 'border-l-4 border-blue-500',
+    dot: 'bg-blue-500',
+    label: 'Today',
+    animate: ''
+  },
+  upcoming: {
+    bg: 'bg-slate-50',
+    text: 'text-slate-600',
+    border: '',
+    dot: 'bg-slate-400',
+    label: 'Scheduled',
+    animate: ''
+  }
+};
+
+// Get relative time display
+function getRelativeTime(scheduledFor) {
+  const now = Date.now();
+  const diff = new Date(scheduledFor).getTime() - now;
+  const diffMinutes = Math.round(diff / (1000 * 60));
+  const diffHours = Math.round(diff / (1000 * 60 * 60));
+  const diffDays = Math.round(diff / (1000 * 60 * 60 * 24));
+
+  if (diff < 0) {
+    const absDiff = Math.abs(diffMinutes);
+    if (absDiff < 60) return `${absDiff}m ago`;
+    if (absDiff < 1440) return `${Math.abs(diffHours)}h ago`;
+    return `${Math.abs(diffDays)}d ago`;
+  }
+
+  if (diffMinutes < 60) return `in ${diffMinutes}m`;
+  if (diffHours < 24) return `in ${diffHours}h`;
+  if (diffDays < 7) return `in ${diffDays}d`;
+
+  return new Date(scheduledFor).toLocaleDateString();
+}
+
+// Get favicon URL
+function getFaviconUrl(pageUrl) {
+  try {
+    const url = new URL(pageUrl);
+    return `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=32`;
+  } catch {
+    return '';
+  }
+}
+
+// Global state for filtering
+let currentTab = 'active';
+let currentSort = 'scheduled';
+let searchQuery = '';
+let selectedPriority = 'high'; // Default priority
+
 document.addEventListener('DOMContentLoaded', async () => {
   const newReminderView = document.getElementById('new-reminder-view');
   const remindersListView = document.getElementById('reminders-list-view');
@@ -112,6 +207,30 @@ document.addEventListener('DOMContentLoaded', async () => {
       previewImage.classList.add('hidden');
     }
 
+    // Handle priority selection
+    document.querySelectorAll('.priority-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.priority-btn').forEach(b => {
+          b.classList.remove('active');
+          b.classList.remove('border-green-500', 'border-yellow-500', 'border-orange-500', 'border-red-500');
+          b.classList.remove('text-green-700', 'text-yellow-700', 'text-orange-700', 'text-red-700');
+          b.classList.add('border-gray-200', 'text-gray-700');
+        });
+        btn.classList.add('active');
+        btn.classList.remove('border-gray-200', 'text-gray-700');
+        selectedPriority = btn.dataset.priority;
+
+        // Add color based on priority
+        const colors = {
+          low: ['border-green-500', 'text-green-700'],
+          medium: ['border-yellow-500', 'text-yellow-700'],
+          high: ['border-orange-500', 'text-orange-700'],
+          urgent: ['border-red-500', 'text-red-700']
+        };
+        btn.classList.add(...colors[selectedPriority]);
+      });
+    });
+
     // Set to now by default
     setCustomTime(1);
 
@@ -153,6 +272,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load and display reminders
     await loadReminders();
 
+    // Handle tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTab = btn.dataset.tab;
+        loadReminders();
+      });
+    });
+
+    // Handle search
+    const searchInput = document.getElementById('search-reminders');
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.toLowerCase();
+      loadReminders();
+    });
+
+    // Handle sort
+    document.getElementById('sort-reminders').addEventListener('change', (e) => {
+      currentSort = e.target.value;
+      loadReminders();
+    });
+
     // Handle clear all button
     document.getElementById('clear-all').addEventListener('click', async () => {
       if (confirm('Are you sure you want to clear all reminders?')) {
@@ -180,35 +322,41 @@ async function createReminder(reminderTime) {
     return;
   }
 
+  // Generate UUID for this reminder
+  const reminderId = generateUUID();
+
   // Create alarm with reminder data
   const alarmData = {
+    id: reminderId,
     type: pendingReminder.type,
     content: pendingReminder.content,
     pageUrl: pendingReminder.pageUrl,
     description: description || null,
-    email: email || null, // Optional email
+    email: email || null,
+    priority: selectedPriority || 'high',
     timestamp: Date.now(),
+    scheduledFor: reminderTime.getTime(),
+    status: 'pending',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   };
 
   try {
     console.log('Creating alarm with data:', alarmData);
-    // Store the alarm data first
+
+    // Store the reminder data with UUID key
+    const storageKey = `reminder_${reminderId}`;
     await chrome.storage.local.set({
-      'test_reminder_data': alarmData
+      [storageKey]: alarmData
     });
 
-    // Create the alarm
-    await chrome.alarms.create('test_reminder', {
+    // Create the alarm with UUID as name
+    await chrome.alarms.create(reminderId, {
       when: reminderTime.getTime()
     });
 
     // Store in history
     const { reminderHistory = [] } = await chrome.storage.local.get('reminderHistory');
-    reminderHistory.push({
-      ...alarmData,
-      scheduledFor: reminderTime.getTime()
-    });
+    reminderHistory.push(alarmData);
     await chrome.storage.local.set({
       reminderHistory: reminderHistory.slice(-100) // Keep last 100 reminders
     });
@@ -216,33 +364,84 @@ async function createReminder(reminderTime) {
     // Show success message by updating the UI
     const container = document.querySelector('.max-w-md');
     container.innerHTML = `
-      <div class="text-center py-8 space-y-4">
-        <div class="text-green-500 mb-4">
-          <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
+      <div class="flex flex-col items-center justify-center py-12 space-y-6">
+        <!-- Success Icon -->
+        <div class="relative">
+          <div class="absolute inset-0 bg-emerald-100 rounded-full blur-xl opacity-50"></div>
+          <div class="relative bg-emerald-50 rounded-full p-4">
+            <svg class="w-12 h-12 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+          </div>
         </div>
-        <h2 class="text-xl font-semibold text-gray-800">Reminder Set!</h2>
-        <p class="text-gray-600">You'll receive ${email ? 'an email and ' : 'a '}browser notification on:</p>
-        <p class="text-gray-800 font-medium">${reminderTime.toLocaleString(undefined, {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZoneName: 'short'
-        })}</p>
-        ${email ? `<p class="text-gray-500 text-sm">Email will be sent to: ${email}</p>` : ''}
-        ${description ? `<p class="text-gray-600 text-sm mt-2">Note: ${description}</p>` : ''}
+
+        <!-- Title -->
+        <div class="text-center space-y-2">
+          <h2 class="text-2xl font-semibold text-gray-900">All Set!</h2>
+          <p class="text-sm text-gray-500">Your reminder has been created</p>
+        </div>
+
+        <!-- Details Card -->
+        <div class="w-full bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="flex-1 text-sm">
+              <p class="text-gray-500 mb-1">Scheduled for</p>
+              <p class="text-gray-900 font-medium">${reminderTime.toLocaleString(undefined, {
+                weekday: 'long',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}</p>
+            </div>
+          </div>
+
+          ${email ? `
+            <div class="flex items-start gap-3 pt-3 border-t border-gray-100">
+              <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+              </svg>
+              <div class="flex-1 text-sm">
+                <p class="text-gray-500 mb-1">Email backup</p>
+                <p class="text-gray-900 font-medium">${email}</p>
+              </div>
+            </div>
+          ` : ''}
+
+          ${description ? `
+            <div class="flex items-start gap-3 pt-3 border-t border-gray-100">
+              <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+              </svg>
+              <div class="flex-1 text-sm">
+                <p class="text-gray-500 mb-1">Your note</p>
+                <p class="text-gray-900">${description}</p>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Action Button -->
+        <button id="view-reminders-btn"
+          class="w-full py-2.5 bg-blue-600 hover:bg-blue-700
+          text-white font-medium rounded-lg text-sm
+          focus:outline-none focus:ring-2 focus:ring-blue-500/20
+          transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] button-lift">
+          View All Reminders
+        </button>
       </div>
     `;
 
+    // Add click handler for the button
+    document.getElementById('view-reminders-btn').addEventListener('click', () => {
+      window.location.href = 'popup.html';
+    });
+
     // Clear pending reminder
     await chrome.storage.local.remove('pendingReminder');
-
-    // Close popup after 3 seconds
-    setTimeout(() => window.close(), 3000);
   } catch (error) {
     console.error('Error creating reminder:', error);
     alert('Failed to set reminder. Please try again.');
@@ -255,7 +454,41 @@ async function loadReminders() {
   const emptyState = document.getElementById('empty-state');
   const reminderCount = document.getElementById('reminder-count');
 
-  if (reminderHistory.length === 0) {
+  // Filter by tab
+  const now = Date.now();
+  let filtered = reminderHistory.filter(r => {
+    const scheduledTime = new Date(r.scheduledFor).getTime();
+    if (currentTab === 'active') {
+      // Active = future notifications that aren't completed
+      return scheduledTime > now && r.status !== 'completed';
+    } else {
+      // Past = completed OR already fired/overdue
+      return r.status === 'completed' || scheduledTime <= now;
+    }
+  });
+
+  // Filter by search query
+  if (searchQuery) {
+    filtered = filtered.filter(r => {
+      const searchText = `${r.content} ${r.description || ''}`.toLowerCase();
+      return searchText.includes(searchQuery);
+    });
+  }
+
+  // Sort
+  const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+  filtered.sort((a, b) => {
+    if (currentSort === 'scheduled') {
+      return a.scheduledFor - b.scheduledFor;
+    } else if (currentSort === 'priority') {
+      return priorityOrder[a.priority || 'high'] - priorityOrder[b.priority || 'high'];
+    } else if (currentSort === 'created') {
+      return b.timestamp - a.timestamp;
+    }
+    return 0;
+  });
+
+  if (filtered.length === 0) {
     remindersList.innerHTML = '';
     emptyState.classList.remove('hidden');
     reminderCount.textContent = '';
@@ -263,31 +496,273 @@ async function loadReminders() {
   }
 
   emptyState.classList.add('hidden');
-  reminderCount.textContent = `${reminderHistory.length} reminder${reminderHistory.length === 1 ? '' : 's'}`;
+  reminderCount.textContent = `${filtered.length} reminder${filtered.length === 1 ? '' : 's'}`;
 
-  remindersList.innerHTML = reminderHistory
-    .sort((a, b) => b.scheduledFor - a.scheduledFor)
-    .map(reminder => `
-      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 transition-all duration-200 hover:shadow-md">
-        <div class="flex items-start justify-between">
-          <div class="space-y-1">
-            <p class="text-sm text-gray-900">
-              ${reminder.type === 'image' ?
-                '<span class="text-blue-600">Image reminder</span>' :
-                `"${reminder.content.substring(0, 100)}${reminder.content.length > 100 ? '...' : ''}"` }
-            </p>
-            <p class="text-xs text-gray-500">
-              Scheduled for: ${new Date(reminder.scheduledFor).toLocaleString()}
-            </p>
+  // Helper function to render a reminder card
+  const renderReminderCard = (reminder) => {
+    const urgency = getUrgencyLevel(reminder.scheduledFor);
+    const config = urgencyConfig[urgency];
+    const relativeTime = getRelativeTime(reminder.scheduledFor);
+    const absoluteTime = new Date(reminder.scheduledFor).toLocaleString();
+    const faviconUrl = getFaviconUrl(reminder.pageUrl);
+    const hostname = new URL(reminder.pageUrl).hostname;
+
+    return `
+      <div class="reminder-card group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md
+                  transition-all duration-200 hover:scale-[1.01] transform-gpu ${config.border} card-enter"
+           data-reminder-id="${reminder.id}">
+
+          <!-- Header Section -->
+          <div class="p-4 space-y-3">
+
+            <!-- Top Row: Urgency + Priority + External Link -->
+            <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <!-- Urgency Indicator -->
+                <div class="inline-flex items-center gap-1.5 ${config.bg} ${config.text} px-2.5 py-1 rounded-full text-xs font-medium ${config.animate}">
+                  <span class="w-2 h-2 ${config.dot} rounded-full"></span>
+                  ${config.label}
+                </div>
+
+                <!-- Priority Badge -->
+                ${(() => {
+                  const priorityConfig = {
+                    low: { bg: 'bg-green-50', text: 'text-green-700', dot: 'bg-green-500', label: 'Low' },
+                    medium: { bg: 'bg-yellow-50', text: 'text-yellow-700', dot: 'bg-yellow-500', label: 'Med' },
+                    high: { bg: 'bg-orange-50', text: 'text-orange-700', dot: 'bg-orange-500', label: 'High' },
+                    urgent: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500', label: 'Urgent' }
+                  };
+                  const pConfig = priorityConfig[reminder.priority || 'high'];
+                  return `
+                    <div class="inline-flex items-center gap-1.5 ${pConfig.bg} ${pConfig.text} px-2.5 py-1 rounded-full text-xs font-medium">
+                      <span class="w-2 h-2 ${pConfig.dot} rounded-full"></span>
+                      ${pConfig.label}
+                    </div>
+                  `;
+                })()}
+              </div>
+
+              <!-- External Link Button -->
+              <a href="${reminder.pageUrl}" target="_blank"
+                 class="flex-shrink-0 p-1.5 hover:bg-gray-100 rounded-lg transition-colors group/link">
+                <svg class="w-4 h-4 text-gray-400 group-hover/link:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+              </a>
+            </div>
+
+            <!-- Content Section -->
+            <div class="space-y-2">
+
+              <!-- Favicon + URL -->
+              <div class="flex items-center gap-2 text-xs text-gray-500">
+                <img src="${faviconUrl}"
+                     alt="favicon"
+                     class="w-4 h-4 rounded-sm"
+                     onerror="this.style.display='none'">
+                <span class="truncate">${hostname}</span>
+              </div>
+
+              <!-- Content Preview -->
+              <div class="content-preview">
+                ${reminder.type === 'image'
+                  ? `<div class="flex items-center gap-2 text-sm font-medium text-blue-700">
+                       <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                       </svg>
+                       Image reminder
+                     </div>`
+                  : `<p class="text-sm text-gray-900 leading-relaxed">${reminder.content.substring(0, 100)}${reminder.content.length > 100 ? '...' : ''}</p>`}
+              </div>
+
+              <!-- Description (if exists) -->
+              ${reminder.description
+                ? `<div class="flex items-start gap-2 text-xs text-gray-600 bg-gray-50 p-2 rounded-lg">
+                     <svg class="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                     </svg>
+                     <span>${reminder.description}</span>
+                   </div>`
+                : ''}
+
+              <!-- Time Display -->
+              <div class="flex items-center gap-2 text-xs ${config.text}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="font-medium">${relativeTime}</span>
+                <span class="text-gray-400">•</span>
+                <span class="text-gray-500">${absoluteTime}</span>
+              </div>
+
+              <!-- Status Badge (if snoozed) -->
+              ${reminder.status === 'snoozed'
+                ? `<div class="inline-flex items-center gap-1.5 bg-violet-100 text-violet-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                     </svg>
+                     Snoozed
+                   </div>`
+                : ''}
+            </div>
           </div>
-          <a href="${reminder.pageUrl}" target="_blank"
-            class="text-blue-600 hover:text-blue-700">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-            </svg>
-          </a>
+
+          <!-- Action Buttons -->
+          <div class="px-4 pb-4 pt-3 border-t border-gray-100 flex gap-2">
+            <button data-action="snooze" data-reminder-id="${reminder.id}"
+                    class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2
+                           bg-violet-50 text-violet-700 hover:bg-violet-100
+                           rounded-lg text-xs font-medium
+                           transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Snooze
+            </button>
+
+            <button data-action="complete" data-reminder-id="${reminder.id}"
+                    class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2
+                           bg-emerald-50 text-emerald-700 hover:bg-emerald-100
+                           rounded-lg text-xs font-medium
+                           transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              Done
+            </button>
+
+            <button data-action="delete" data-reminder-id="${reminder.id}"
+                    class="flex items-center justify-center px-3 py-2
+                           bg-rose-50 text-rose-700 hover:bg-rose-100
+                           rounded-lg text-xs font-medium
+                           transition-all duration-200 hover:scale-105 active:scale-95 button-lift">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
-    `).join('');
+      `;
+  };
+
+  // Render all reminders in a simple list
+  remindersList.innerHTML = `<div class="space-y-2">${filtered.map(renderReminderCard).join('')}</div>`;
+
+  // Add event listeners for action buttons using event delegation
+  remindersList.addEventListener('click', async (e) => {
+    const button = e.target.closest('button[data-action]');
+    if (!button) return;
+
+    const action = button.dataset.action;
+    const reminderId = button.dataset.reminderId;
+
+    if (action === 'snooze') {
+      await snoozeReminder(reminderId);
+    } else if (action === 'complete') {
+      await completeReminder(reminderId);
+    } else if (action === 'delete') {
+      await deleteReminder(reminderId);
+    }
+  });
+}
+
+// Snooze reminder function
+async function snoozeReminder(reminderId) {
+  const minutes = [5, 15, 60, 180, 1440]; // 5min, 15min, 1hr, 3hr, 1 day
+  const labels = ['5 minutes', '15 minutes', '1 hour', '3 hours', 'Tomorrow'];
+
+  const choice = prompt(`Snooze for how long?\n\n${labels.map((l, i) => `${i + 1}. ${l}`).join('\n')}\n\nEnter 1-5:`);
+
+  if (!choice || choice < 1 || choice > 5) return;
+
+  const snoozeMinutes = minutes[choice - 1];
+  const newTime = new Date();
+  newTime.setMinutes(newTime.getMinutes() + snoozeMinutes);
+
+  try {
+    // Get reminder data
+    const { reminderHistory = [] } = await chrome.storage.local.get('reminderHistory');
+    const reminderIndex = reminderHistory.findIndex(r => r.id === reminderId);
+
+    if (reminderIndex === -1) return;
+
+    const reminder = reminderHistory[reminderIndex];
+
+    // Update reminder
+    reminder.scheduledFor = newTime.getTime();
+    reminder.status = 'snoozed';
+
+    // Update storage
+    reminderHistory[reminderIndex] = reminder;
+    await chrome.storage.local.set({ reminderHistory });
+    await chrome.storage.local.set({ [`reminder_${reminderId}`]: reminder });
+
+    // Update alarm
+    await chrome.alarms.clear(reminderId);
+    await chrome.alarms.create(reminderId, { when: newTime.getTime() });
+
+    // Reload list
+    await loadReminders();
+
+    console.log(`Reminder snoozed until ${newTime.toLocaleString()}`);
+  } catch (error) {
+    console.error('Error snoozing reminder:', error);
+    alert('Failed to snooze reminder');
+  }
+}
+
+// Complete reminder function
+async function completeReminder(reminderId) {
+  try {
+    // Get reminder data
+    const { reminderHistory = [] } = await chrome.storage.local.get('reminderHistory');
+    const reminderIndex = reminderHistory.findIndex(r => r.id === reminderId);
+
+    if (reminderIndex === -1) return;
+
+    // Update reminder status
+    reminderHistory[reminderIndex].status = 'completed';
+    reminderHistory[reminderIndex].completedAt = Date.now();
+
+    // Update storage
+    await chrome.storage.local.set({ reminderHistory });
+
+    // Clear alarm
+    await chrome.alarms.clear(reminderId);
+    await chrome.storage.local.remove(`reminder_${reminderId}`);
+
+    // Reload list
+    await loadReminders();
+
+    console.log('Reminder marked as completed');
+  } catch (error) {
+    console.error('Error completing reminder:', error);
+    alert('Failed to mark reminder as complete');
+  }
+}
+
+// Delete reminder function
+async function deleteReminder(reminderId) {
+  if (!confirm('Delete this reminder?')) return;
+
+  try {
+    // Get reminder data
+    const { reminderHistory = [] } = await chrome.storage.local.get('reminderHistory');
+    const updatedHistory = reminderHistory.filter(r => r.id !== reminderId);
+
+    // Update storage
+    await chrome.storage.local.set({ reminderHistory: updatedHistory });
+    await chrome.storage.local.remove(`reminder_${reminderId}`);
+
+    // Clear alarm
+    await chrome.alarms.clear(reminderId);
+
+    // Reload list
+    await loadReminders();
+
+    console.log('Reminder deleted');
+  } catch (error) {
+    console.error('Error deleting reminder:', error);
+    alert('Failed to delete reminder');
+  }
 }

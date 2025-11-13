@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Remind Me - Smart Web Reminders",
-  "version": "1.1",
+  "version": "1.2",
   "description": "Set reminders for any web content with just a right-click. 100% private - all data stays on your device.",
   "homepage_url": "https://lucavehbiu.github.io/remindme-extension/",
   "permissions": [
@@ -12,7 +12,7 @@
     "notifications"
   ],
   "host_permissions": [
-    "https://api.resend.com/emails"
+    "https://hook.eu2.make.com/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
