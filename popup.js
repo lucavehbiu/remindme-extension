@@ -18,10 +18,10 @@ function showConfirmModal(title, message) {
     modalTitle.textContent = title;
     modalMessage.textContent = message;
     modalButtons.innerHTML = `
-      <button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+      <button id="modal-cancel" class="px-4 py-2 text-sm font-medium text-gray-700 backdrop-blur-sm bg-white/70 hover:bg-white rounded-lg transition-colors shadow-sm">
         Cancel
       </button>
-      <button id="modal-confirm" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+      <button id="modal-confirm" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-md hover:shadow-lg">
         Delete
       </button>
     `;
@@ -298,7 +298,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const colors = {
           low: ['border-green-500', 'text-green-700'],
           medium: ['border-yellow-500', 'text-yellow-700'],
-          high: ['border-orange-500', 'text-orange-700'],
+          high: ['border-gray-900', 'text-gray-900'],
           urgent: ['border-red-500', 'text-red-700']
         };
         btn.classList.add(...colors[selectedPriority]);
@@ -454,76 +454,78 @@ async function createReminder(reminderTime) {
       reminderHistory: reminderHistory.slice(-100) // Keep last 100 reminders
     });
 
-    // Show success message by updating the UI
-    const container = document.querySelector('.max-w-md');
-    container.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-12 space-y-6">
-        <!-- Success Icon -->
-        <div class="relative">
-          <div class="absolute inset-0 bg-blue-100 rounded-full blur-xl opacity-50"></div>
-          <div class="relative bg-white rounded-full p-4 shadow-lg">
-            <img src="unnamed.webp" alt="Remind Me" class="w-16 h-16">
-          </div>
-        </div>
-
-        <!-- Title -->
-        <div class="text-center space-y-2">
-          <h2 class="text-2xl font-semibold text-gray-900">All Set!</h2>
-          <p class="text-sm text-gray-500">Your reminder has been created</p>
-        </div>
-
-        <!-- Details Card -->
-        <div class="w-full bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-          <div class="flex items-start gap-3">
-            <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <div class="flex-1 text-sm">
-              <p class="text-gray-500 mb-1">Scheduled for</p>
-              <p class="text-gray-900 font-medium">${reminderTime.toLocaleString(undefined, {
-                weekday: 'long',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}</p>
+    // Hide the form and show success message
+    const newReminderView = document.getElementById('new-reminder-view');
+    newReminderView.innerHTML = `
+      <div class="h-screen flex flex-col items-center justify-center px-6" style="background: linear-gradient(to bottom, #fafafa 0%, #f5f5f5 100%);">
+        <div class="max-w-md w-full space-y-6">
+          <!-- Success Icon -->
+          <div class="relative flex justify-center">
+            <div class="absolute inset-0 bg-gray-200 rounded-full blur-xl opacity-30"></div>
+            <div class="relative w-20 h-20 rounded-xl flex items-center justify-center shadow-lg" style="background: linear-gradient(135deg, #f5f5f5 0%, #e5e5e5 100%);">
+              <img src="unnamed.webp" alt="Remind Me" class="w-12 h-12">
             </div>
           </div>
 
-          ${email ? `
-            <div class="flex items-start gap-3 pt-3 border-t border-gray-100">
-              <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-              </svg>
-              <div class="flex-1 text-sm">
-                <p class="text-gray-500 mb-1">Email backup</p>
-                <p class="text-gray-900 font-medium">${email}</p>
-                <p class="text-amber-600 text-xs mt-1">📫 Check spam folder if not received</p>
-              </div>
-            </div>
-          ` : ''}
+          <!-- Title -->
+          <div class="text-center space-y-2">
+            <h2 class="text-2xl font-semibold text-gray-900">All Set!</h2>
+            <p class="text-sm text-gray-500">Your reminder has been created</p>
+          </div>
 
-          ${description ? `
-            <div class="flex items-start gap-3 pt-3 border-t border-gray-100">
-              <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+          <!-- Details Card -->
+          <div class="backdrop-blur-md bg-white/80 border border-gray-200/50 rounded-2xl p-5 space-y-3 shadow-lg">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-gray-900 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
               <div class="flex-1 text-sm">
-                <p class="text-gray-500 mb-1">Your note</p>
-                <p class="text-gray-900">${description}</p>
+                <p class="text-gray-500 mb-1">Scheduled for</p>
+                <p class="text-gray-900 font-medium">${reminderTime.toLocaleString(undefined, {
+                  weekday: 'long',
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}</p>
               </div>
             </div>
-          ` : ''}
+
+            ${email ? `
+              <div class="flex items-start gap-3 pt-3 border-t border-gray-100">
+                <svg class="w-5 h-5 text-gray-900 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                <div class="flex-1 text-sm">
+                  <p class="text-gray-500 mb-1">Email backup</p>
+                  <p class="text-gray-900 font-medium">${email}</p>
+                  <p class="text-amber-600 text-xs mt-1">📫 Check spam folder if not received</p>
+                </div>
+              </div>
+            ` : ''}
+
+            ${description ? `
+              <div class="flex items-start gap-3 pt-3 border-t border-gray-100">
+                <svg class="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                </svg>
+                <div class="flex-1 text-sm">
+                  <p class="text-gray-500 mb-1">Your note</p>
+                  <p class="text-gray-900">${description}</p>
+                </div>
+              </div>
+            ` : ''}
+          </div>
+
+          <!-- Action Button -->
+          <button id="view-reminders-btn"
+            class="w-full py-3 bg-gray-900 hover:bg-gray-800
+            text-white font-medium rounded-lg text-sm
+            focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2
+            transition-all duration-200 shadow-md hover:shadow-lg">
+            View All Reminders
+          </button>
         </div>
-
-        <!-- Action Button -->
-        <button id="view-reminders-btn"
-          class="w-full py-2.5 bg-blue-600 hover:bg-blue-700
-          text-white font-medium rounded-lg text-sm
-          focus:outline-none focus:ring-2 focus:ring-blue-500/20
-          transition-all duration-200 hover:scale-[1.02] active:scale-[0.99] button-lift">
-          View All Reminders
-        </button>
       </div>
     `;
 
@@ -600,7 +602,7 @@ async function loadReminders() {
     const hostname = new URL(reminder.pageUrl).hostname;
 
     return `
-      <div class="reminder-card group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md
+      <div class="reminder-card group backdrop-blur-md bg-white/80 border border-gray-200/50 rounded-xl shadow-md hover:shadow-lg
                   transition-all duration-200 hover:scale-[1.01] transform-gpu ${config.border} card-enter"
            data-reminder-id="${reminder.id}">
 

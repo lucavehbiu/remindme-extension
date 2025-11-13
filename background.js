@@ -148,8 +148,8 @@ async function handleReminderNotification(reminderData) {
                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                           <tr>
                             <td style="text-align: center;">
-                              <div style="margin: 0 auto 16px;">
-                                <img src="https://lucavehbiu.github.io/remindme-extension/unnamed.webp" alt="Remind Me" style="width: 64px; height: 64px; display: block; margin: 0 auto; border-radius: 12px;" />
+                              <div style="margin: 0 auto 16px; display: inline-block; padding: 12px; background: linear-gradient(135deg, #f5f5f5 0%, #e5e5e5 100%); border-radius: 12px;">
+                                <img src="https://lucavehbiu.github.io/remindme-extension/unnamed.webp" alt="Remind Me" style="width: 48px; height: 48px; display: block;" />
                               </div>
                               <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #111827;">Reminder Notification</h1>
                               <p style="margin: 8px 0 0; font-size: 14px; color: #6b7280;">You asked to be reminded about this</p>
